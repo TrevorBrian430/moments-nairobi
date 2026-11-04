@@ -1,5 +1,6 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { PRODUCTS, STORE_INFO } from "@/lib/constants";
+import { PRODUCTS } from "@/lib/constants";
 import ProductDetailClient from "./ProductDetailClient";
 import type { Metadata } from "next";
 
@@ -34,7 +35,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProductPage({
+async function ProductContent({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -59,5 +60,27 @@ export default async function ProductPage({
           : PRODUCTS.filter((p) => p.id !== product.id).slice(0, 4)
       }
     />
+  );
+}
+
+export default function ProductPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center text-gray-400">
+          <div className="animate-pulse space-y-4 max-w-md mx-auto">
+            <div className="h-64 bg-gray-100 rounded-2xl" />
+            <div className="h-6 bg-gray-100 rounded w-3/4 mx-auto" />
+            <div className="h-4 bg-gray-100 rounded w-1/2 mx-auto" />
+          </div>
+        </div>
+      }
+    >
+      <ProductContent params={params} />
+    </Suspense>
   );
 }

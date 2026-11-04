@@ -126,6 +126,11 @@ export const PRODUCTS: Product[] = [
       "/images/bagpack 2.jpg",
       "/images/bagpack 3.jpg",
     ],
+    colors: [
+      { name: "Brown Monogram", hex: "#4a3728", image: "/images/bagpack 1.jpg" },
+      { name: "Black Monogram", hex: "#1a1a1a", image: "/images/bagpack 3.jpg" },
+      { name: "Black Embossed", hex: "#0d0d0d", image: "/images/bagpack 2.jpg" },
+    ],
     inStock: true,
     stockCount: 10,
     isFeatured: false,
