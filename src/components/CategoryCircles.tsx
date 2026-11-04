@@ -6,37 +6,34 @@ import { CATEGORIES } from "@/lib/constants";
 
 export default function CategoryCircles() {
   return (
-    <section className="w-full py-6">
-      <div
-        className={
-          "flex items-start gap-5 overflow-x-auto px-4 pb-2 scrollbar-hide " +
-          "sm:justify-center sm:overflow-x-visible sm:px-0"
-        }
-      >
+    <div className="w-full py-2">
+      <div className="flex items-start gap-4 sm:gap-6 overflow-x-auto px-1 pb-3 scrollbar-hide sm:justify-center snap-x snap-mandatory">
         {CATEGORIES.map((category) => (
           <Link
             key={category.id}
             href={`/shop?category=${category.slug}`}
-            className="group flex shrink-0 flex-col items-center gap-2"
+            className="group flex shrink-0 flex-col items-center gap-2 snap-start cursor-pointer active:scale-95 transition-transform"
           >
-            {/* Circle image */}
-            <div className="relative h-20 w-20 overflow-hidden rounded-full ring-2 ring-transparent transition-all duration-300 group-hover:ring-[#B85C6E] group-hover:ring-offset-2 sm:h-24 sm:w-24">
-              <Image
-                src={category.image}
-                alt={category.name}
-                fill
-                sizes="96px"
-                className="object-cover transition-transform duration-300 group-hover:scale-110"
-              />
+            {/* Story ring and image */}
+            <div className="relative p-0.5 rounded-full ring-2 ring-gray-200 group-hover:ring-[#B85C6E] transition-all duration-300 shadow-sm">
+              <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full bg-neutral-100">
+                <Image
+                  src={category.image}
+                  alt={category.name}
+                  fill
+                  sizes="80px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              </div>
             </div>
 
             {/* Label */}
-            <span className="max-w-[5rem] text-center text-xs font-medium text-neutral-700 transition-colors group-hover:text-[#B85C6E] sm:max-w-[6rem] sm:text-sm">
+            <span className="w-20 text-center text-[11px] sm:text-xs font-bold text-gray-800 group-hover:text-[#B85C6E] transition-colors line-clamp-2 leading-tight">
               {category.name}
             </span>
           </Link>
         ))}
       </div>
-    </section>
+    </div>
   );
 }

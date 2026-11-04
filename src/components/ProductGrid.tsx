@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, type Product } from "@/lib/constants";
 import ProductCard from "@/components/ProductCard";
@@ -48,10 +48,7 @@ export default function ProductGrid({
         break;
       case "newest":
       default:
-        // New items first, then maintain original order
-        result.sort(
-          (a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0)
-        );
+        result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
         break;
     }
 
@@ -60,104 +57,95 @@ export default function ProductGrid({
 
   return (
     <section className="w-full">
-      {/* Header */}
-      {(title || showFilters) && (
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {title && (
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-xl font-bold text-neutral-900 sm:text-2xl">
-                {title}
-              </h2>
-              <Link
-                href="/shop"
-                className="text-sm font-medium text-[#B85C6E] hover:underline sm:hidden"
-              >
-                View All
-              </Link>
-            </div>
-          )}
-
-          {showFilters && (
-            <div className="flex items-center gap-3">
-              {/* Sort dropdown */}
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className={cn(
-                    "appearance-none rounded-md border border-neutral-200 bg-white py-2 pl-3 pr-8 text-sm text-neutral-700",
-                    "focus:border-[#B85C6E] focus:outline-none focus:ring-1 focus:ring-[#B85C6E]"
-                  )}
-                >
-                  {SORT_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-              </div>
-            </div>
-          )}
-
-          {title && (
-            <Link
-              href="/shop"
-              className="hidden text-sm font-medium text-[#B85C6E] hover:underline sm:inline-block"
-            >
-              View All →
-            </Link>
-          )}
+      {/* 1. Title bar */}
+      {title && (
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="font-heading text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+              {title}
+            </h2>
+          </div>
+          <Link
+            href="/shop"
+            className="text-xs sm:text-sm font-semibold text-[#B85C6E] hover:underline flex items-center gap-1 shrink-0"
+          >
+            <span>View All</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
       )}
 
-      {/* Category filter tabs */}
+      {/* 2. Compact filter bar: Categories + Sort dropdown in one line */}
       {showFilters && (
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <button
-            type="button"
-            onClick={() => setActiveCategory("all")}
-            className={cn(
-              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-              activeCategory === "all"
-                ? "bg-neutral-900 text-white"
-                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-            )}
-          >
-            All
-          </button>
-          {CATEGORIES.map((cat) => (
+        <div className="mb-6 flex items-center justify-between gap-3 bg-gray-50/80 p-2 sm:p-2.5 rounded-2xl border border-gray-100">
+          {/* Horizontal scrollable category pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5 pr-2">
             <button
-              key={cat.id}
               type="button"
-              onClick={() => setActiveCategory(cat.slug)}
+              onClick={() => setActiveCategory("all")}
               className={cn(
-                "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                activeCategory === cat.slug
-                  ? "bg-neutral-900 text-white"
-                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all",
+                activeCategory === "all"
+                  ? "bg-gray-900 text-white shadow-sm"
+                  : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
               )}
             >
-              {cat.name}
+              All
             </button>
-          ))}
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setActiveCategory(cat.slug)}
+                className={cn(
+                  "shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-bold transition-all",
+                  activeCategory === cat.slug
+                    ? "bg-[#B85C6E] text-white shadow-sm"
+                    : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                )}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Compact Sort dropdown */}
+          <div className="relative shrink-0">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className={cn(
+                "appearance-none rounded-xl border border-gray-200 bg-white py-1.5 pl-3 pr-7 text-xs font-bold text-gray-700",
+                "focus:border-[#B85C6E] focus:outline-none shadow-sm cursor-pointer"
+              )}
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+          </div>
         </div>
       )}
 
-      {/* Product grid */}
+      {/* 3. Product grid (2-col mobile, 3-col tablet, 4-col desktop) */}
       {filteredAndSorted.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
           {filteredAndSorted.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-neutral-300 py-16 text-center">
-          <p className="text-neutral-500">No products found in this category.</p>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 py-16 text-center bg-gray-50/50">
+          <p className="text-sm font-medium text-gray-500">
+            No products found in this category.
+          </p>
           <button
             type="button"
             onClick={() => setActiveCategory("all")}
-            className="mt-2 text-sm font-medium text-[#B85C6E] hover:underline"
+            className="mt-2 text-xs font-bold text-[#B85C6E] hover:underline"
           >
             View all products
           </button>

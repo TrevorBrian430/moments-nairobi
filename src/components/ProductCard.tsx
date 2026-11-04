@@ -124,30 +124,30 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       {/* Details */}
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
         {/* Rating and category */}
-        <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-          <span className="uppercase tracking-wider font-semibold text-gray-400 text-[10px]">
+        <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-500 mb-1">
+          <span className="uppercase tracking-wider font-bold text-gray-400 text-[9px] sm:text-[10px] truncate max-w-[90px]">
             {product.category.replace("-", " ")}
           </span>
-          <div className="flex items-center gap-1 text-amber-500 font-medium">
-            <Star className="h-3.5 w-3.5 fill-current" />
+          <div className="flex items-center gap-1 text-amber-500 font-bold shrink-0">
+            <Star className="h-3 w-3 fill-current" />
             <span>5.0</span>
-            <span className="text-gray-400">(12)</span>
+            <span className="text-gray-400 font-normal">(12)</span>
           </div>
         </div>
 
         {/* Title */}
         <Link
           href={`/product/${product.slug}`}
-          className="font-medium text-gray-900 group-hover:text-[#B85C6E] transition-colors line-clamp-1 mb-1.5"
+          className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-[#B85C6E] transition-colors line-clamp-1 mb-1"
         >
           {product.name}
         </Link>
 
         {/* Color swatches preview */}
         {visibleColors.length > 0 && (
-          <div className="flex items-center gap-1.5 mb-2.5">
+          <div className="flex items-center gap-1.5 mb-2">
             {visibleColors.map((color) => (
               <button
                 key={color.name}
@@ -158,7 +158,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 }}
                 title={color.name}
                 className={cn(
-                  "h-3.5 w-3.5 rounded-full border transition-all",
+                  "h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-full border transition-all",
                   selectedColor === color.name
                     ? "ring-2 ring-[#B85C6E] ring-offset-1 scale-110"
                     : "border-gray-200 hover:scale-105"
@@ -167,7 +167,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               />
             ))}
             {extraColorCount > 0 && (
-              <span className="text-[10px] text-gray-500 font-medium">
+              <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold">
                 +{extraColorCount}
               </span>
             )}
@@ -175,13 +175,13 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {/* Price & Add to Cart button */}
-        <div className="mt-auto pt-2 flex items-center justify-between border-t border-gray-50">
-          <div>
-            <div className="text-base font-bold text-gray-900">
+        <div className="mt-auto pt-2 flex items-center justify-between gap-1 border-t border-gray-50">
+          <div className="min-w-0">
+            <div className="text-xs sm:text-base font-extrabold text-gray-900 truncate">
               {formatPrice(displayPrice)}
             </div>
             {product.salePrice && (
-              <div className="text-xs text-gray-400 line-through">
+              <div className="text-[10px] sm:text-xs text-gray-400 line-through truncate">
                 {formatPrice(product.price)}
               </div>
             )}
@@ -191,7 +191,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             type="button"
             onClick={handleAddToCart}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200",
+              "flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 shrink-0",
               addedAnimation
                 ? "bg-green-600 text-white"
                 : "bg-gray-900 text-white hover:bg-[#B85C6E] active:scale-95 shadow-sm"
@@ -199,12 +199,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           >
             {addedAnimation ? (
               <>
-                <Check className="h-3.5 w-3.5" />
-                <span>Added!</span>
+                <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                <span>Added</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="h-3.5 w-3.5" />
+                <ShoppingBag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 <span>Add</span>
               </>
             )}

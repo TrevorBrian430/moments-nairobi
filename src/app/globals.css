@@ -14,8 +14,8 @@
   --color-danger: #E53935;
   --color-muted: #6B7280;
 
-  --font-heading: "Playfair Display", serif;
-  --font-body: "Inter", sans-serif;
+  --font-heading: var(--font-heading), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-body: var(--font-body), "Inter", system-ui, sans-serif;
 }
 
 @layer base {
@@ -28,6 +28,7 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    letter-spacing: -0.025em;
   }
 }
 

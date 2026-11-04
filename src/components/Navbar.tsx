@@ -10,14 +10,17 @@ import {
   X,
   Phone,
   MessageCircle,
+  MapPin,
 } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
 import { cn } from "@/lib/utils";
+import { STORE_INFO } from "@/lib/constants";
 
 const NAV_LINKS = [
-  { label: "Shop", href: "/shop" },
-  { label: "New Arrivals", href: "/shop?category=new-arrivals" },
-  { label: "Bags", href: "/shop?category=bags" },
+  { label: "Shop All", href: "/shop" },
+  { label: "Backpacks", href: "/shop?category=backpacks" },
+  { label: "Crossbody Bags", href: "/shop?category=crossbody-bags" },
+  { label: "Designer Bags", href: "/shop?category=designer-bags" },
   { label: "Clothing", href: "/shop?category=clothing" },
   { label: "Accessories", href: "/shop?category=accessories" },
 ] as const;
@@ -45,46 +48,52 @@ export default function Navbar() {
   return (
     <>
       {/* ====== Announcement bar ====== */}
-      <div className="bg-gray-900 text-white text-xs text-center py-2 px-4">
-        🚚 Free delivery in Nairobi CBD • Countrywide shipping available
+      <div className="bg-gray-950 text-white text-[11px] sm:text-xs text-center py-2 px-3 tracking-wide border-b border-white/5 font-medium">
+        🚚 Free CBD Delivery &bull; Countrywide Shipping &bull; Order via WhatsApp:{" "}
+        <a
+          href="https://wa.me/254702947981"
+          className="underline font-bold text-green-400 hover:text-green-300"
+        >
+          0702 947 981
+        </a>
       </div>
 
       {/* ====== Main navbar ====== */}
       <header
         className={cn(
-          "sticky top-0 z-50 w-full bg-white border-b transition-shadow duration-300",
+          "sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b transition-all duration-300",
           scrolled ? "shadow-md border-gray-200" : "border-gray-100"
         )}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
+        <div className="mx-auto flex h-16 sm:h-18 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
           {/* — Mobile hamburger — */}
           <button
             aria-label="Open menu"
-            className="lg:hidden p-2 -ml-2 text-gray-700 hover:text-[#B85C6E] transition-colors"
+            className="lg:hidden p-2 -ml-1 text-gray-800 hover:text-[#B85C6E] transition-colors"
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="h-6 w-6" />
           </button>
 
           {/* — Logo — */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Link href="/" className="flex items-center gap-2 shrink-0 py-1">
             <Image
               src="/images/logo.png"
               alt="Moments Nairobi"
-              width={120}
-              height={40}
-              className="h-10 w-auto object-contain"
+              width={160}
+              height={50}
+              className="h-9 sm:h-11 w-auto object-contain"
               priority
             />
           </Link>
 
           {/* — Desktop nav links — */}
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-7">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative text-sm font-medium text-gray-700 hover:text-[#B85C6E] transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#B85C6E] after:transition-all"
+                className="relative text-xs uppercase font-bold tracking-wider text-gray-700 hover:text-[#B85C6E] transition-colors py-1"
               >
                 {link.label}
               </Link>
@@ -92,7 +101,7 @@ export default function Navbar() {
           </nav>
 
           {/* — Right icons — */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             {/* Search */}
             <Link
               href="/search"
@@ -108,7 +117,7 @@ export default function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Chat on WhatsApp"
-              className="hidden sm:block p-2 text-gray-700 hover:text-green-600 transition-colors"
+              className="p-2 text-gray-700 hover:text-green-600 transition-colors"
             >
               <MessageCircle className="h-5 w-5" />
             </a>
@@ -117,11 +126,11 @@ export default function Navbar() {
             <Link
               href="/cart"
               aria-label="Shopping cart"
-              className="relative p-2 text-gray-700 hover:text-[#B85C6E] transition-colors"
+              className="relative p-2 text-gray-800 hover:text-[#B85C6E] transition-colors"
             >
               <ShoppingBag className="h-5 w-5" />
               {itemCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#B85C6E] text-[10px] font-bold text-white">
+                <span className="absolute -top-0.5 -right-0.5 flex h-4.5 w-4.5 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-[#B85C6E] text-[10px] font-extrabold text-white shadow-sm">
                   {itemCount > 99 ? "99+" : itemCount}
                 </span>
               )}
@@ -134,7 +143,7 @@ export default function Navbar() {
       {/* Backdrop */}
       <div
         className={cn(
-          "fixed inset-0 z-[60] bg-black/40 transition-opacity duration-300 lg:hidden",
+          "fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
           mobileOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -146,12 +155,12 @@ export default function Navbar() {
       {/* Drawer panel */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-[70] w-72 bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden flex flex-col",
+          "fixed inset-y-0 left-0 z-[70] w-80 max-w-[85vw] bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden flex flex-col",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Drawer header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
+        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <Link
             href="/"
             onClick={() => setMobileOpen(false)}
@@ -160,51 +169,67 @@ export default function Navbar() {
             <Image
               src="/images/logo.png"
               alt="Moments Nairobi"
-              width={100}
-              height={34}
+              width={140}
+              height={44}
               className="h-8 w-auto object-contain"
             />
           </Link>
           <button
             aria-label="Close menu"
-            className="p-2 text-gray-500 hover:text-gray-800 transition-colors"
+            className="p-2 -mr-2 text-gray-500 hover:text-gray-900 transition-colors"
             onClick={() => setMobileOpen(false)}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
+        {/* Store location tag */}
+        <div className="px-5 pt-3 pb-2 text-[11px] text-gray-500 flex items-center gap-2 bg-gray-50 border-b border-gray-100">
+          <MapPin className="h-3.5 w-3.5 text-[#B85C6E] shrink-0" />
+          <span className="truncate">Twilight Suites F4-08, Tom Mboya St</span>
+        </div>
+
         {/* Nav links */}
-        <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              className="block rounded-lg px-3 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#B85C6E] transition-colors"
+              className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 hover:text-[#B85C6E] transition-colors"
             >
               {link.label}
             </Link>
           ))}
+
+          <div className="pt-4 border-t border-gray-100">
+            <Link
+              href="/admin"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-xl px-4 py-3 text-xs font-semibold text-gray-400 hover:bg-gray-50 hover:text-gray-900"
+            >
+              Shopnetic POS Terminal (Staff)
+            </Link>
+          </div>
         </nav>
 
         {/* Drawer footer */}
-        <div className="border-t border-gray-100 px-4 py-4 space-y-3">
+        <div className="border-t border-gray-100 p-4 space-y-2.5 bg-gray-50/70">
           <a
             href="https://wa.me/254702947981"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 text-sm text-gray-600 hover:text-green-600 transition-colors"
+            className="flex items-center justify-center gap-2.5 w-full bg-[#25D366] text-white py-3 rounded-full text-xs font-bold shadow-md hover:bg-[#20bd59] transition-colors"
           >
             <MessageCircle className="h-4 w-4" />
-            Chat on WhatsApp
+            <span>Chat on WhatsApp (0702 947 981)</span>
           </a>
           <a
             href="tel:+254702947981"
-            className="flex items-center gap-3 text-sm text-gray-600 hover:text-[#B85C6E] transition-colors"
+            className="flex items-center justify-center gap-2 w-full border border-gray-200 bg-white text-gray-800 py-2.5 rounded-full text-xs font-bold hover:bg-gray-50 transition-colors"
           >
-            <Phone className="h-4 w-4" />
-            0702 947 981
+            <Phone className="h-4 w-4 text-[#B85C6E]" />
+            <span>Call 0702 947 981</span>
           </a>
         </div>
       </aside>

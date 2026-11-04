@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-heading",
+  display: "swap",
+});
 
 const inter = Inter({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-body",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-heading",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -21,6 +25,7 @@ export const metadata: Metadata = {
     "men's fashion nairobi",
     "bags nairobi",
     "backpacks kenya",
+    "goyard backpacks nairobi",
     "men's accessories",
     "moments nairobi",
     "designer bags nairobi",
@@ -29,6 +34,8 @@ export const metadata: Metadata = {
     title: "Moments Nairobi | Men's Fashion",
     description: "Everyday fits. Every occasion. Own Your Moment.",
     type: "website",
+    url: "https://momentsnairobi.co.ke",
+    siteName: "Moments Nairobi",
   },
 };
 
@@ -38,8 +45,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+    <html lang="en" className={`${jakarta.variable} ${inter.variable}`}>
+      <body className="font-sans antialiased text-gray-900 bg-white selection:bg-[#B85C6E] selection:text-white">
         {children}
       </body>
     </html>
