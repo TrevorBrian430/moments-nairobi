@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import { useOrdersStore } from "@/stores/orders-store";
 import { formatPrice, generateWhatsAppLink } from "@/lib/utils";
@@ -16,8 +16,13 @@ import {
 } from "lucide-react";
 
 export default function CheckoutPage() {
+  const [mounted, setMounted] = useState(false);
   const { items, totalPrice, clearCart } = useCartStore();
   const addOrder = useOrdersStore((s) => s.addOrder);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [createdOrderNumber, setCreatedOrderNumber] = useState<string>("");
   const [step, setStep] = useState<"details" | "payment" | "confirmation">(
     "details"
@@ -94,6 +99,17 @@ export default function CheckoutPage() {
 
     clearCart();
     setStep("confirmation");
+  }
+
+  if (!mounted) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+        <div className="animate-pulse space-y-4 text-center">
+          <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto" />
+          <div className="h-6 w-32 bg-gray-200 rounded mx-auto" />
+        </div>
+      </div>
+    );
   }
 
   if (items.length === 0 && step !== "confirmation") {

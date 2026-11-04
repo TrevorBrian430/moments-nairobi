@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useCartStore, type CartItem } from "@/stores/cart-store";
 import { formatPrice, generateWhatsAppLink } from "@/lib/utils";
 import { STORE_INFO } from "@/lib/constants";
@@ -8,8 +9,13 @@ import Link from "next/link";
 import { Minus, Plus, Trash2, ShoppingBag, MessageCircle, ArrowLeft } from "lucide-react";
 
 export default function CartPage() {
+  const [mounted, setMounted] = useState(false);
   const { items, updateQuantity, removeItem, clearCart, totalPrice } =
     useCartStore();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const deliveryFee = 0; // Free for now
   const total = totalPrice() + deliveryFee;
@@ -28,6 +34,17 @@ export default function CartPage() {
     return `Hi Moments Nairobi! 👋\n\nI'd like to order:\n${itemLines}\n\nTotal: ${formatPrice(
       total
     )}\n\nDelivery to: [My address]\nPhone: [My phone number]`;
+  }
+
+  if (!mounted) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+        <div className="animate-pulse space-y-4 text-center">
+          <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto" />
+          <div className="h-6 w-32 bg-gray-200 rounded mx-auto" />
+        </div>
+      </div>
+    );
   }
 
   if (items.length === 0) {

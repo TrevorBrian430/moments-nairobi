@@ -69,20 +69,23 @@ export default function ProductCard({ product }: ProductCardProps) {
       )}
     >
       {/* Clickable Image container */}
-      <Link
-        href={`/product/${product.slug}`}
-        className="relative aspect-square w-full overflow-hidden bg-neutral-50 block"
-      >
-        <Image
-          src={product.images[0]}
-          alt={product.name}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-        />
+      <div className="relative aspect-square w-full overflow-hidden bg-neutral-50">
+        <Link
+          href={`/product/${product.slug}`}
+          className="absolute inset-0 z-0 block"
+          aria-label={product.name}
+        >
+          <Image
+            src={product.images[0]}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        </Link>
 
         {/* Badges overlay */}
-        <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5">
+        <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5 pointer-events-none">
           {product.isNew && (
             <span className="rounded-full bg-[#B85C6E] px-2.5 py-0.5 text-[11px] font-semibold text-white tracking-wide shadow-sm">
               NEW DROP
@@ -101,12 +104,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           onClick={handleWishlist}
           aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
           className={cn(
-            "absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-transform hover:scale-110 shadow-sm",
+            "absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-transform hover:scale-110 shadow-sm cursor-pointer touch-manipulation",
             isWishlisted ? "text-[#B85C6E]" : "text-gray-400 hover:text-gray-700"
           )}
         >
           <Heart
-            className="h-4 w-4"
+            className="h-4 w-4 pointer-events-none"
             fill={isWishlisted ? "currentColor" : "none"}
           />
         </button>
@@ -117,11 +120,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           onClick={handleWhatsApp}
           title="Order via WhatsApp"
           aria-label="Order via WhatsApp"
-          className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md transition-all duration-300 hover:scale-110 active:scale-95"
+          className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer touch-manipulation"
         >
-          <MessageCircle className="h-5 w-5" />
+          <MessageCircle className="h-5 w-5 pointer-events-none" />
         </button>
-      </Link>
+      </div>
 
       {/* Details */}
       <div className="flex flex-1 flex-col p-3 sm:p-4">
@@ -191,7 +194,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             type="button"
             onClick={handleAddToCart}
             className={cn(
-              "flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 shrink-0",
+              "flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer touch-manipulation",
               addedAnimation
                 ? "bg-green-600 text-white"
                 : "bg-gray-900 text-white hover:bg-[#B85C6E] active:scale-95 shadow-sm"
@@ -199,13 +202,13 @@ export default function ProductCard({ product }: ProductCardProps) {
           >
             {addedAnimation ? (
               <>
-                <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                <span>Added</span>
+                <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 pointer-events-none" />
+                <span className="pointer-events-none">Added</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                <span>Add</span>
+                <ShoppingBag className="h-3 w-3 sm:h-3.5 sm:w-3.5 pointer-events-none" />
+                <span className="pointer-events-none">Add</span>
               </>
             )}
           </button>
