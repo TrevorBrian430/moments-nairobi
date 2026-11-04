@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCartStore } from "@/stores/cart-store";
+import { useOrdersStore } from "@/stores/orders-store";
 import { formatPrice, generateWhatsAppLink } from "@/lib/utils";
 import { STORE_INFO, DELIVERY_ZONES } from "@/lib/constants";
 import Link from "next/link";
@@ -16,6 +17,8 @@ import {
 
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCartStore();
+  const addOrder = useOrdersStore((s) => s.addOrder);
+  const [createdOrderNumber, setCreatedOrderNumber] = useState<string>("");
   const [step, setStep] = useState<"details" | "payment" | "confirmation">(
     "details"
   );
@@ -38,35 +41,59 @@ export default function CheckoutPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    // Record order in CMS store
+    const newOrder = addOrder({
+      customerName: formData.name,
+      customerPhone: formData.phone,
+      customerEmail: formData.email,
+      deliveryZone: formData.deliveryZone,
+      deliveryAddress: formData.address,
+      notes: formData.notes,
+      items: items.map((i) => ({
+        productId: i.productId,
+        name: i.name,
+        price: i.price,
+        quantity: i.quantity,
+        color: i.color,
+        size: i.size,
+        image: i.image,
+      })),
+      subtotal: totalPrice(),
+      deliveryFee,
+      total,
+      paymentMethod: formData.paymentMethod,
+    });
+
+    setCreatedOrderNumber(newOrder.orderNumber);
+
+    const itemLines = items
+      .map(
+        (item) =>
+          `• ${item.name}${item.color ? ` (${item.color})` : ""}${
+            item.size ? ` - Size ${item.size}` : ""
+          } × ${item.quantity} — ${formatPrice(item.price * item.quantity)}`
+      )
+      .join("\n");
+
+    const message = `Hi Moments Nairobi! 👋\n\nOrder Ref: #${newOrder.orderNumber}\nI'd like to place an order:\n${itemLines}\n\nSubtotal: ${formatPrice(
+      totalPrice()
+    )}\nDelivery (${formData.deliveryZone}): ${
+      deliveryFee === 0 ? "Free" : formatPrice(deliveryFee)
+    }\nTotal: ${formatPrice(total)}\n\nCustomer: ${formData.name}\nPhone: ${
+      formData.phone
+    }\nAddress: ${formData.address}\n${
+      formData.notes ? `Notes: ${formData.notes}` : ""
+    }`;
+
     if (formData.paymentMethod === "whatsapp") {
-      const itemLines = items
-        .map(
-          (item) =>
-            `• ${item.name}${item.color ? ` (${item.color})` : ""}${
-              item.size ? ` - Size ${item.size}` : ""
-            } × ${item.quantity} — ${formatPrice(item.price * item.quantity)}`
-        )
-        .join("\n");
-
-      const message = `Hi Moments Nairobi! 👋\n\nI'd like to order:\n${itemLines}\n\nSubtotal: ${formatPrice(
-        totalPrice()
-      )}\nDelivery (${formData.deliveryZone}): ${
-        deliveryFee === 0 ? "Free" : formatPrice(deliveryFee)
-      }\nTotal: ${formatPrice(total)}\n\nName: ${formData.name}\nPhone: ${
-        formData.phone
-      }\nDelivery to: ${formData.address}\n${
-        formData.notes ? `Notes: ${formData.notes}` : ""
-      }`;
-
       window.open(
         generateWhatsAppLink(STORE_INFO.phone, message),
         "_blank"
       );
-      setStep("confirmation");
-    } else {
-      // M-Pesa / Card — for now show WhatsApp fallback
-      setStep("confirmation");
     }
+
+    clearCart();
+    setStep("confirmation");
   }
 
   if (items.length === 0 && step !== "confirmation") {
@@ -90,11 +117,15 @@ export default function CheckoutPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
         <CheckCircle2 className="w-20 h-20 text-mpesa mb-6" />
         <h2 className="font-heading text-3xl font-bold mb-2">
-          Order Placed! 🎉
+          Order Placed Successfully! 🎉
         </h2>
+        {createdOrderNumber && (
+          <div className="inline-block bg-gray-100 text-gray-800 font-mono font-bold text-sm px-4 py-1.5 rounded-full mb-3">
+            Order Reference: #{createdOrderNumber}
+          </div>
+        )}
         <p className="text-gray-600 mb-2 max-w-md">
-          Your order has been sent via WhatsApp. Our team will confirm and
-          arrange delivery shortly.
+          Your order has been recorded and sent to our team at Twilight Suites. We will confirm and arrange dispatch shortly!
         </p>
         <p className="text-sm text-gray-500 mb-8">
           You can also call us at{" "}
