@@ -1,325 +1,337 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { Suspense, useMemo, useState, useEffect, useTransition } from "react";
+import Link from "next/link";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { Filter } from "lucide-react";
 import { PRODUCTS, CATEGORIES, type Product } from "@/lib/constants";
+import { useProductsStore } from "@/stores/products-store";
+import { parseShopParams, serializeShopParams, ShopFilterParams } from "@/lib/shop-params";
+import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
 import ProductCard from "@/components/ProductCard";
-import { ChevronDown, Filter, X, SlidersHorizontal } from "lucide-react";
-import { cn } from "@/lib/utils";
+import FilterRail from "@/components/shop/FilterRail";
+import FilterDrawer from "@/components/shop/FilterDrawer";
+import SortSelect, { SortValue } from "@/components/shop/SortSelect";
+import ActiveFilterChips from "@/components/shop/ActiveFilterChips";
+import ProductGridSkeleton from "@/components/shop/ProductGridSkeleton";
+import EmptyState from "@/components/shop/EmptyState";
 
-type SortOption = "newest" | "price-asc" | "price-desc";
+const PAGE_SIZE = 12;
 
-function ShopContent() {
+function ShopCatalog() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialCategory = searchParams.get("category") || "all";
+  const [isPending, startTransition] = useTransition();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
-  const [priceMax, setPriceMax] = useState<number>(6000);
-  const [onlyInStock, setOnlyInStock] = useState<boolean>(false);
-  const [mobileFilterOpen, setMobileFilterOpen] = useState<boolean>(false);
+  // Mobile filter drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter((p) => {
-      // Category filter
-      if (selectedCategory !== "all" && p.category !== selectedCategory) {
-        return false;
-      }
-      // Price filter
-      const effPrice = p.salePrice ?? p.price;
-      if (effPrice > priceMax) {
-        return false;
-      }
-      // In stock
-      if (onlyInStock && !p.inStock) {
-        return false;
-      }
-      return true;
-    }).sort((a, b) => {
-      const priceA = a.salePrice ?? a.price;
-      const priceB = b.salePrice ?? b.price;
-      if (sortBy === "price-asc") return priceA - priceB;
-      if (sortBy === "price-desc") return priceB - priceA;
-      // Newest
-      return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
+  // Pagination state (steps of 12)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // Products from store / fallback
+  const storeProducts = useProductsStore((s) => s.products);
+  const allProducts = storeProducts.length > 0 ? storeProducts : PRODUCTS;
+
+  // Parse current URL params
+  const filterParams = useMemo(() => {
+    return parseShopParams(searchParams);
+  }, [searchParams]);
+
+  // Reset pagination count when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filterParams]);
+
+  // Update URL helper without history spam or scroll jumps
+  const updateParams = (newParams: Partial<ShopFilterParams>) => {
+    const updated: ShopFilterParams = {
+      ...filterParams,
+      ...newParams,
+    };
+    const queryString = serializeShopParams(updated);
+    startTransition(() => {
+      router.replace(`${pathname}${queryString}`, { scroll: false });
     });
-  }, [selectedCategory, sortBy, priceMax, onlyInStock]);
+  };
 
-  const currentCategoryInfo = CATEGORIES.find((c) => c.slug === selectedCategory);
+  const handleClearAll = () => {
+    startTransition(() => {
+      router.replace(pathname, { scroll: false });
+    });
+  };
+
+  // Filter & sort products
+  const filteredProducts = useMemo(() => {
+    return allProducts
+      .filter((p) => {
+        // Category
+        if (filterParams.category && p.category !== filterParams.category) {
+          return false;
+        }
+
+        // Price
+        const effPrice = p.salePrice ?? p.price;
+        if (typeof filterParams.min === "number" && effPrice < filterParams.min) {
+          return false;
+        }
+        if (typeof filterParams.max === "number" && effPrice > filterParams.max) {
+          return false;
+        }
+
+        // Color
+        if (filterParams.color && filterParams.color.length > 0) {
+          const productColors = p.colors?.map((c) => c.name.toLowerCase()) || [];
+          const matches = filterParams.color.some((selectedColor) =>
+            productColors.some((pc) => pc.includes(selectedColor) || selectedColor.includes(pc))
+          );
+          if (!matches) return false;
+        }
+
+        // Size
+        if (filterParams.size && filterParams.size.length > 0) {
+          const productSizes = p.sizes || [];
+          const matches = filterParams.size.some((selectedSize) =>
+            productSizes.includes(selectedSize)
+          );
+          if (!matches) return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        const priceA = a.salePrice ?? a.price;
+        const priceB = b.salePrice ?? b.price;
+
+        if (filterParams.sort === "price-asc") return priceA - priceB;
+        if (filterParams.sort === "price-desc") return priceB - priceA;
+
+        // Default Newest (createdAt desc, fallback to isNew)
+        const dateA = (a as { createdAt?: string }).createdAt;
+        const dateB = (b as { createdAt?: string }).createdAt;
+        if (dateA && dateB) {
+          return new Date(dateB).getTime() - new Date(dateA).getTime();
+        }
+        if (dateA) return -1;
+        if (dateB) return 1;
+        return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
+      });
+  }, [allProducts, filterParams]);
+
+  // Current category information
+  const categoryInfo = filterParams.category
+    ? CATEGORIES.find((c) => c.slug === filterParams.category)
+    : null;
+
+  const categoryName = categoryInfo ? categoryInfo.name : "All products";
+  const categoryDesc = categoryInfo ? categoryInfo.description : undefined;
+
+  // Active filter count for mobile badge
+  const activeFilterCount =
+    (filterParams.category ? 1 : 0) +
+    (typeof filterParams.min === "number" || typeof filterParams.max === "number" ? 1 : 0) +
+    (filterParams.color?.length || 0) +
+    (filterParams.size?.length || 0);
+
+  // Paginated visible slice
+  const displayedProducts = filteredProducts.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredProducts.length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12 overflow-x-hidden">
-      {/* Header section */}
-      <div className="border-b border-gray-100 pb-8 mb-8">
-        <h1 className="font-heading text-3xl sm:text-4xl font-bold text-gray-900 capitalize">
-          {selectedCategory === "all" ? "All Collections" : currentCategoryInfo?.name || selectedCategory.replace("-", " ")}
-        </h1>
-        <p className="text-gray-500 text-sm mt-1">
-          {currentCategoryInfo?.description || "Explore everyday fits, designer backpacks & versatile accessories."}
-        </p>
+    <div className="w-full bg-[var(--color-background)] min-h-screen">
+      {/* 1. Page Header: Breadcrumb, H1, Result count */}
+      <div className="border-b border-[var(--color-hairline)] pt-8 pb-8">
+        <Container>
+          {/* Breadcrumb */}
+          <nav aria-label="Breadcrumb" className="mb-3">
+            <ol className="flex items-center gap-1.5 text-xs text-[var(--color-muted)]">
+              <li>
+                <Link
+                  href="/"
+                  className="hover:text-[var(--color-ink)] transition-colors"
+                >
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true" className="opacity-40">/</li>
+              <li>
+                <Link
+                  href="/shop"
+                  className={categoryInfo ? "hover:text-[var(--color-ink)] transition-colors" : "text-[var(--color-ink)] font-medium"}
+                >
+                  Shop
+                </Link>
+              </li>
+              {categoryInfo && (
+                <>
+                  <li aria-hidden="true" className="opacity-40">/</li>
+                  <li className="text-[var(--color-ink)] font-medium" aria-current="page">
+                    {categoryInfo.name}
+                  </li>
+                </>
+              )}
+            </ol>
+          </nav>
 
-        {/* Quick category pills on desktop & mobile */}
-        <div className="flex gap-2 overflow-x-auto pb-2 pt-4 scrollbar-hide">
-          <button
-            type="button"
-            onClick={() => setSelectedCategory("all")}
-            className={cn(
-              "shrink-0 rounded-full px-4 py-2 text-xs sm:text-sm font-semibold transition-all",
-              selectedCategory === "all"
-                ? "bg-gray-900 text-white shadow-sm"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            )}
-          >
-            All Products ({PRODUCTS.length})
-          </button>
-          {CATEGORIES.map((cat) => {
-            const count = PRODUCTS.filter((p) => p.category === cat.slug).length;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setSelectedCategory(cat.slug)}
-                className={cn(
-                  "shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs sm:text-sm font-semibold transition-all",
-                  selectedCategory === cat.slug
-                    ? "bg-[#B85C6E] text-white shadow-sm"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                )}
-              >
-                {cat.name} ({count})
-              </button>
-            );
-          })}
-        </div>
+          {/* Heading and Factual result count */}
+          <h1 className="font-heading font-medium text-[clamp(28px,3vw,40px)] text-[var(--color-ink)] leading-tight tracking-[-0.02em]">
+            {categoryName}
+          </h1>
+
+          {categoryDesc && (
+            <p className="text-sm text-[var(--color-muted)] mt-1 max-w-xl">
+              {categoryDesc}
+            </p>
+          )}
+
+          <p className="text-xs text-[var(--color-muted)] mt-2">
+            {filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"}
+          </p>
+        </Container>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Desktop Sidebar Filters */}
-        <aside className="hidden lg:block space-y-6">
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2 text-sm uppercase tracking-wider">
-                <SlidersHorizontal className="h-4 w-4 text-[#B85C6E]" />
-                Filters
-              </h3>
-              {(selectedCategory !== "all" || priceMax < 6000 || onlyInStock) && (
-                <button
-                  onClick={() => {
-                    setSelectedCategory("all");
-                    setPriceMax(6000);
-                    setOnlyInStock(false);
-                  }}
-                  className="text-xs text-[#B85C6E] hover:underline font-semibold"
-                >
-                  Reset All
-                </button>
-              )}
-            </div>
-
-            {/* Price slider */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Max Price
-                </span>
-                <span className="text-sm font-bold text-gray-900">
-                  KES {priceMax.toLocaleString()}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="1000"
-                max="6000"
-                step="500"
-                value={priceMax}
-                onChange={(e) => setPriceMax(Number(e.target.value))}
-                className="w-full accent-[#B85C6E] cursor-pointer"
-              />
-              <div className="flex justify-between text-[11px] text-gray-400 mt-1">
-                <span>KES 1,000</span>
-                <span>KES 6,000</span>
-              </div>
-            </div>
-
-            {/* In stock only toggle */}
-            <div className="pt-2 border-t border-gray-100">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={onlyInStock}
-                  onChange={(e) => setOnlyInStock(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-[#B85C6E] focus:ring-[#B85C6E] accent-[#B85C6E]"
-                />
-                <span className="text-sm text-gray-700 font-medium">
-                  In Stock Only
-                </span>
-              </label>
-            </div>
-          </div>
-
-          {/* Location box */}
-          <div className="bg-neutral-50 rounded-2xl p-5 border border-gray-100 text-xs text-gray-600 space-y-2">
-            <div className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">
-              📍 Store Pickup Available
-            </div>
-            <p>
-              Twilight Suites F4-08, Tom Mboya St. Select items can be reserved online &amp; paid at pickup.
-            </p>
-          </div>
-        </aside>
-
-        {/* Product listing main area */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Controls bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl">
-            <div className="flex items-center gap-3">
+      {/* 2. Toolbar row: Hairline top and bottom, sticky on mobile */}
+      <div className="sticky top-16 z-30 bg-[var(--color-background)]/95 backdrop-blur-xs border-b border-[var(--color-hairline)]">
+        <Container>
+          <div className="flex items-center justify-between py-2.5 sm:py-3 gap-4">
+            {/* Left: Mobile Filters button & desktop count */}
+            <div className="flex items-center gap-4">
               <button
                 type="button"
-                onClick={() => setMobileFilterOpen(true)}
-                className="lg:hidden flex items-center gap-2 bg-white px-3.5 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 shadow-sm"
+                onClick={() => setDrawerOpen(true)}
+                aria-label={`Open filters. ${activeFilterCount} active.`}
+                className="lg:hidden inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-[var(--color-ink)] bg-[var(--color-surface)] border border-[var(--color-hairline)] rounded-[2px] min-h-[44px] cursor-pointer touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
               >
-                <Filter className="h-4 w-4 text-[#B85C6E]" />
-                Filters
+                <Filter className="h-4 w-4" />
+                <span>Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="flex h-4 min-w-[16px] px-1 items-center justify-center rounded-[999px] bg-[var(--color-accent)] text-[10px] font-semibold text-white">
+                    {activeFilterCount}
+                  </span>
+                )}
               </button>
-              <span className="text-xs sm:text-sm text-gray-600">
-                Showing <strong className="text-gray-900">{filteredProducts.length}</strong> items
+
+              <span
+                aria-live="polite"
+                className="text-xs text-[var(--color-muted)] hidden lg:inline"
+              >
+                Showing {displayedProducts.length} of {filteredProducts.length} items
               </span>
             </div>
 
-            {/* Sort selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 hidden sm:inline">Sort by:</span>
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-xs font-medium text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#B85C6E]"
-                >
-                  <option value="newest">Newest Arrivals</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-              </div>
-            </div>
+            {/* Right: Sort select */}
+            <SortSelect
+              value={filterParams.sort || "newest"}
+              onChange={(newSort: SortValue) => updateParams({ sort: newSort })}
+            />
           </div>
 
-          {/* Product Cards Grid */}
-          {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-              {filteredProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200 p-8 space-y-3">
-              <p className="text-gray-500 font-medium">
-                No items match your selected filters.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory("all");
-                  setPriceMax(6000);
-                  setOnlyInStock(false);
-                }}
-                className="text-sm font-semibold text-[#B85C6E] hover:underline"
-              >
-                Reset all filters
-              </button>
-            </div>
-          )}
-        </div>
+          {/* Active filter chips (horizontal scroll on mobile) */}
+          <ActiveFilterChips
+            params={filterParams}
+            onRemoveCategory={() => updateParams({ category: undefined })}
+            onRemovePrice={() => updateParams({ min: undefined, max: undefined })}
+            onRemoveColor={(colorToRemove) => {
+              const current = filterParams.color || [];
+              const next = current.filter((c) => c !== colorToRemove);
+              updateParams({ color: next.length > 0 ? next : undefined });
+            }}
+            onRemoveSize={(sizeToRemove) => {
+              const current = filterParams.size || [];
+              const next = current.filter((s) => s !== sizeToRemove);
+              updateParams({ size: next.length > 0 ? next : undefined });
+            }}
+            onClearAll={handleClearAll}
+          />
+        </Container>
       </div>
 
-      {/* Mobile filter bottom drawer */}
-      {mobileFilterOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/50 lg:hidden">
-          <div className="bg-white rounded-t-3xl p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-gray-900 text-lg">Filter Products</h3>
-              <button
-                onClick={() => setMobileFilterOpen(false)}
-                className="p-1 rounded-full text-gray-500 hover:bg-gray-100"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Category selection */}
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">
-                Category
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory("all")}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium",
-                    selectedCategory === "all"
-                      ? "bg-gray-900 text-white"
-                      : "bg-gray-100 text-gray-700"
-                  )}
-                >
-                  All
-                </button>
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setSelectedCategory(cat.slug)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full text-xs font-medium",
-                      selectedCategory === cat.slug
-                        ? "bg-[#B85C6E] text-white"
-                        : "bg-gray-100 text-gray-700"
-                    )}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Price slider */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Max Price
-                </span>
-                <span className="text-sm font-bold text-gray-900">
-                  KES {priceMax.toLocaleString()}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="1000"
-                max="6000"
-                step="500"
-                value={priceMax}
-                onChange={(e) => setPriceMax(Number(e.target.value))}
-                className="w-full accent-[#B85C6E]"
+      {/* 3. Two-column body: Left filter rail (sticky) + Right product grid */}
+      <div className="py-8 lg:py-12">
+        <Container>
+          <div className="flex items-start gap-10">
+            {/* Desktop Filter Rail (260px, sticky) */}
+            <div className="hidden lg:block w-[260px] shrink-0 sticky top-[136px]">
+              <FilterRail
+                params={filterParams}
+                allProducts={allProducts}
+                onFilterChange={updateParams}
+                onClearAll={handleClearAll}
               />
             </div>
 
-            <button
-              onClick={() => setMobileFilterOpen(false)}
-              className="w-full py-3.5 bg-gray-900 text-white font-semibold rounded-full text-sm"
-            >
-              Apply Filters
-            </button>
+            {/* Right Product Grid Area */}
+            <div className="flex-1 min-w-0">
+              {isPending ? (
+                <ProductGridSkeleton count={PAGE_SIZE} />
+              ) : displayedProducts.length > 0 ? (
+                <div className="space-y-10">
+                  {/* 3 cols on lg (1024-1279px), 4 cols on xl (>= 1280px), 2 cols on mobile */}
+                  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    {displayedProducts.map((product, idx) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        priority={idx < 4}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Pagination / Load More Footer */}
+                  <div className="pt-8 border-t border-[var(--color-hairline)] flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <span className="text-xs text-[var(--color-muted)]">
+                      Showing {displayedProducts.length} of {filteredProducts.length}
+                    </span>
+
+                    {hasMore && (
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+                        className="w-full sm:w-auto min-h-[44px] px-8 text-xs font-medium"
+                      >
+                        Load more
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <EmptyState
+                  onClear={handleClearAll}
+                  suggestions={allProducts.slice(0, 4)}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        </Container>
+      </div>
+
+      {/* Mobile Filter Drawer */}
+      <FilterDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        params={filterParams}
+        allProducts={allProducts}
+        onFilterChange={updateParams}
+        onClearAll={handleClearAll}
+        totalResults={filteredProducts.length}
+      />
     </div>
   );
 }
 
 export default function ShopPage() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-16 text-center text-gray-400">Loading catalog...</div>}>
-      <ShopContent />
+    <Suspense
+      fallback={
+        <Container className="py-12">
+          <ProductGridSkeleton count={PAGE_SIZE} />
+        </Container>
+      }
+    >
+      <ShopCatalog />
     </Suspense>
   );
 }

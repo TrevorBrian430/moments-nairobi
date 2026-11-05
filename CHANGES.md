@@ -150,3 +150,49 @@ Generated clean, transparent-background SVG vectors directly from the original r
 - `src/config/categories.ts`: Category tile slugs, labels, image sources, neutral alt text, and object positions.
 - `src/config/editorial.ts`: Editorial band headlines, copy, links, and product photo settings.
 - `src/config/offers.ts`: Promotional offer copy, WhatsApp phone, default message, and enabled toggle.
+
+
+# Part 4 Redesign Changes: Shop Listing and Category Views (/shop)
+
+## 1. Step 0 Audit: Previous Filter, Sort, and Category Behavior
+- **Previous Category Selection**: Relied solely on local component state initialized once from query parameters. Clicking category pills did not synchronize with the URL, preventing shareable category links and breaking browser back/forward navigation.
+- **Previous Sorting**: Kept entirely in local React state (`useState`) without query parameter tracking.
+- **Previous Price Filtering**: Single slider input (`KES 1,000` to `KES 6,000`) without explicit min/max inputs or presets.
+- **Removed Elements**:
+  - Horizontal pill category filter row.
+  - "Trending Essentials For You" headings and marketing copy.
+  - Star ratings, heart/wishlist buttons, green WhatsApp bubble buttons on images, and always-visible Add buttons.
+  - "NEW DROP" badges from every card.
+  - "Popular" sort option (removed as no real sales volume metric exists).
+  - Trademark brand names in suggestion tags (e.g. removed "Goyard" from search suggestions).
+
+## 2. Page Structure & Components Created
+- **`ShopPage` (`src/app/(storefront)/shop/page.tsx`)**:
+  - Breadcrumb navigation (`Home / Shop` or `Home / Shop / [Category Name]`).
+  - H1 with category name or "All products" and factual result count ("24 products").
+  - Sticky toolbar with active filter chips, mobile "Filters" trigger button, and native sort selector.
+  - Responsive two-column desktop layout: 260px sticky left filter rail and right product grid (3 cols at 1024px–1279px, 4 cols at ≥ 1280px, 2 cols on mobile).
+  - Clean pagination in steps of 12 items with "Showing X of Y" and "Load more" button. Zero orphan rows on incomplete pages.
+- **`FilterRail` (`src/components/shop/FilterRail.tsx`)**:
+  - Sticky at `top-[136px]`, 260px wide.
+  - Accordions open by default:
+    - *Category*: List with real item counts; active category marked by 2px accent left bar and 500 font weight.
+    - *Price*: Two number inputs with KES prefix for min/max prices (applied on blur or Enter) + preset list ("Under 2,000", "2,000 to 4,000", "Above 4,000").
+    - *Color*: 20px circular swatches with visible selected rings, tooltips, and multi-select support.
+    - *Size*: Multi-select buttons for sizes present in product data (e.g. 32–38, M–3XL).
+  - Top "Clear all" link visible only when filters are active.
+- **`FilterDrawer` (`src/components/shop/FilterDrawer.tsx`)**:
+  - Mobile bottom sheet modal drawer opened by the toolbar "Filters" button with active count badge.
+  - Accessible dialog (`role="dialog"`, `aria-modal="true"`, Escape key dismissal, body scroll lock).
+  - Sticky Apply and Clear buttons at the bottom.
+- **`SortSelect` (`src/components/shop/SortSelect.tsx`)**:
+  - Native select with options: "Newest", "Price: low to high", "Price: high to low".
+- **`ActiveFilterChips` (`src/components/shop/ActiveFilterChips.tsx`)**:
+  - Individual removable chips for category, price range, color, and size with 2px radius and hairline borders. Horizontally scrollable on mobile.
+- **`ProductGridSkeleton` (`src/components/shop/ProductGridSkeleton.tsx`)**:
+  - 12 skeleton cards (4:5 ratio, `#EDEAE4`, slow 1.5s pulse, no layout shift).
+- **`EmptyState` (`src/components/shop/EmptyState.tsx`)**:
+  - Factual single line "No products match these filters.", "Clear filters" action, and 4 suggested products from the catalog (no illustrations).
+- **`URL Param Helpers` (`src/lib/shop-params.ts`)**:
+  - Synchronizes all filters and sort parameters into query strings (`?category=...&min=...&max=...&color=...&size=...&sort=...`).
+  - Employs `router.replace(url, { scroll: false })` to eliminate history clutter and maintain scroll stability.
