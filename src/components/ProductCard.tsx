@@ -1,219 +1,135 @@
 "use client";
 
-import Image from "next/image";
+import React, { useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, MessageCircle, Heart, Star, Check } from "lucide-react";
-import { cn, formatPrice, generateWhatsAppLink } from "@/lib/utils";
-import { STORE_INFO, type Product } from "@/lib/constants";
+import Image from "next/image";
+import { type Product } from "@/lib/constants";
+import { Price } from "@/components/ui/Price";
 import { useCartStore } from "@/stores/cart-store";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-interface ProductCardProps {
+export interface ProductCardProps {
   product: Product;
+  className?: string;
+  priority?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
-  const addItem = useCartStore((state) => state.addItem);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [addedAnimation, setAddedAnimation] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(
-    product.colors && product.colors.length > 0 ? product.colors[0].name : undefined
-  );
+export function ProductCard({
+  product,
+  className,
+  priority = false,
+}: ProductCardProps) {
+  const [added, setAdded] = useState(false);
+  const addItem = useCartStore((s) => s.addItem);
 
-  const displayPrice = product.salePrice ?? product.price;
+  // Check if product has a createdAt date within the last 14 days
+  const productDate = (product as { createdAt?: string }).createdAt;
+  const isRecent = productDate
+    ? Date.now() - new Date(productDate).getTime() < 14 * 24 * 60 * 60 * 1000
+    : false;
 
-  const whatsappMessage = `Hi Moments Nairobi! I'm interested in ordering ${product.name}${
-    selectedColor ? ` (${selectedColor})` : ""
-  } - ${formatPrice(displayPrice)}`;
+  const hasSecondImage = product.images && product.images.length > 1;
 
-  const whatsappUrl = generateWhatsAppLink(
-    STORE_INFO.whatsappPhone,
-    whatsappMessage
-  );
-
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addItem({
       productId: product.id,
       name: product.name,
-      price: displayPrice,
-      image: product.images[0],
-      color: selectedColor,
-      size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : undefined,
+      price: product.price,
+      image: product.images[0] || "/images/bagpack 1.jpg",
+      color: product.colors?.[0]?.name,
     });
-    setAddedAnimation(true);
-    setTimeout(() => setAddedAnimation(false), 1500);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
   };
-
-  const handleWhatsApp = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsWishlisted((prev) => !prev);
-  };
-
-  const visibleColors = product.colors?.slice(0, 4) ?? [];
-  const extraColorCount = (product.colors?.length ?? 0) - 4;
 
   return (
-    <div
+    <Link
+      href={`/product/${product.slug}`}
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-2xl bg-white border border-gray-100",
-        "shadow-sm transition-all duration-300 hover:shadow-xl hover:border-gray-200"
+        "group flex flex-col w-full text-left select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] rounded-[2px]",
+        className
       )}
+      aria-label={`${product.name} - KES ${product.price.toLocaleString("en-KE")}`}
     >
-      {/* Image container */}
-      <div className="relative aspect-square w-full overflow-hidden bg-neutral-50 block">
-        <Link
-          href={`/product/${product.slug}`}
-          className="absolute inset-0 block z-0"
-          aria-label={`View ${product.name}`}
-        >
-          <Image
-            src={product.images[0]}
-            alt={product.name}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-        </Link>
-
-        {/* Badges overlay */}
-        <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-col gap-1.5">
-          {product.isNew && (
-            <span className="rounded-full bg-[#B85C6E] px-2.5 py-0.5 text-[11px] font-semibold text-white tracking-wide shadow-sm">
-              NEW DROP
-            </span>
-          )}
-          {product.salePrice && (
-            <span className="rounded-full bg-red-600 px-2.5 py-0.5 text-[11px] font-semibold text-white tracking-wide shadow-sm">
-              SALE
-            </span>
-          )}
-        </div>
-
-        {/* Wishlist button */}
-        <button
-          type="button"
-          onClick={handleWishlist}
-          aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-          className={cn(
-            "absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-transform hover:scale-110 shadow-sm cursor-pointer touch-manipulation",
-            isWishlisted ? "text-[#B85C6E]" : "text-gray-400 hover:text-gray-700"
-          )}
-        >
-          <Heart
-            className="h-4 w-4"
-            fill={isWishlisted ? "currentColor" : "none"}
-          />
-        </button>
-
-        {/* WhatsApp quick order floating button */}
-        <button
-          type="button"
-          onClick={handleWhatsApp}
-          title="Order via WhatsApp"
-          aria-label="Order via WhatsApp"
-          className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer touch-manipulation"
-        >
-          <MessageCircle className="h-5 w-5" />
-        </button>
-      </div>
-
-      {/* Details */}
-      <div className="flex flex-1 flex-col p-3 sm:p-4">
-        {/* Rating and category */}
-        <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-500 mb-1">
-          <span className="uppercase tracking-wider font-bold text-gray-400 text-[9px] sm:text-[10px] truncate max-w-[90px]">
-            {product.category.replace("-", " ")}
+      {/* 4:5 Product Image Container with #EDEAE4 fallback */}
+      <div className="relative aspect-[4/5] w-full rounded-[2px] overflow-hidden bg-[var(--color-surface-fallback)]">
+        {/* Optional "New" tag if under 14 days old */}
+        {isRecent && (
+          <span className="absolute top-2.5 left-2.5 z-10 text-[10px] uppercase tracking-[0.08em] font-medium bg-[var(--color-surface)] text-[var(--color-ink)] px-2 py-0.5 rounded-[2px] border border-[var(--color-hairline)] pointer-events-none">
+            New
           </span>
-          <div className="flex items-center gap-1 text-amber-500 font-bold shrink-0">
-            <Star className="h-3 w-3 fill-current" />
-            <span>5.0</span>
-            <span className="text-gray-400 font-normal">(12)</span>
-          </div>
-        </div>
-
-        {/* Title */}
-        <Link
-          href={`/product/${product.slug}`}
-          className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-[#B85C6E] transition-colors line-clamp-1 mb-1"
-        >
-          {product.name}
-        </Link>
-
-        {/* Color swatches preview */}
-        {visibleColors.length > 0 && (
-          <div className="flex items-center gap-1.5 mb-2">
-            {visibleColors.map((color) => (
-              <button
-                key={color.name}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setSelectedColor(color.name);
-                }}
-                title={color.name}
-                className={cn(
-                  "h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-full border transition-all",
-                  selectedColor === color.name
-                    ? "ring-2 ring-[#B85C6E] ring-offset-1 scale-110"
-                    : "border-gray-200 hover:scale-105"
-                )}
-                style={{ backgroundColor: color.hex }}
-              />
-            ))}
-            {extraColorCount > 0 && (
-              <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold">
-                +{extraColorCount}
-              </span>
-            )}
-          </div>
         )}
 
-        {/* Price & Add to Cart button */}
-        <div className="mt-auto pt-2 flex items-center justify-between gap-1 border-t border-gray-50">
-          <div className="min-w-0">
-            <div className="text-xs sm:text-base font-extrabold text-gray-900 truncate">
-              {formatPrice(displayPrice)}
-            </div>
-            {product.salePrice && (
-              <div className="text-[10px] sm:text-xs text-gray-400 line-through truncate">
-                {formatPrice(product.price)}
-              </div>
-            )}
-          </div>
+        {/* Primary Image */}
+        <Image
+          src={product.images[0] || "/images/bagpack 1.jpg"}
+          alt={product.name}
+          fill
+          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 50vw"
+          priority={priority}
+          className={cn(
+            "object-cover object-center transition-all duration-300 ease-out",
+            hasSecondImage && "group-hover:opacity-0"
+          )}
+        />
 
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            className={cn(
-              "flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 shrink-0",
-              addedAnimation
-                ? "bg-green-600 text-white"
-                : "bg-gray-900 text-white hover:bg-[#B85C6E] active:scale-95 shadow-sm"
-            )}
-          >
-            {addedAnimation ? (
-              <>
-                <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                <span>Added</span>
-              </>
-            ) : (
-              <>
-                <ShoppingBag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                <span>Add</span>
-              </>
-            )}
-          </button>
+        {/* Secondary Image on Hover (if available) */}
+        {hasSecondImage && (
+          <Image
+            src={product.images[1]}
+            alt={`${product.name} alternate view`}
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 50vw"
+            className="object-cover object-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"
+          />
+        )}
+
+        {/* Desktop Quick Add Button on Hover */}
+        <button
+          type="button"
+          onClick={handleQuickAdd}
+          className="hidden lg:block absolute bottom-0 inset-x-0 bg-[var(--color-surface)]/95 text-[var(--color-ink)] text-xs font-medium py-2.5 text-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-[var(--color-accent)] hover:text-white cursor-pointer touch-manipulation z-20 border-t border-[var(--color-hairline)]"
+        >
+          {added ? "Added to bag" : "Quick add"}
+        </button>
+      </div>
+
+      {/* Info Block Below Image */}
+      <div className="pt-3 pb-1 flex flex-col gap-1">
+        <h3 className="text-sm font-medium text-[var(--color-ink)] group-hover:text-[var(--color-accent)] transition-colors duration-200 truncate">
+          {product.name}
+        </h3>
+
+        <div className="flex items-center justify-between gap-2">
+          <Price amount={product.price} size="sm" />
+
+          {/* 12px Color Swatches (only if variants exist) */}
+          {product.colors && product.colors.length > 0 && (
+            <div
+              className="flex items-center gap-1 shrink-0"
+              aria-label={`${product.colors.length} color variants`}
+            >
+              {product.colors.slice(0, 4).map((c) => (
+                <span
+                  key={c.name}
+                  title={c.name}
+                  className="h-3 w-3 rounded-full border border-[var(--color-hairline)] shrink-0"
+                  style={{ backgroundColor: c.hex }}
+                />
+              ))}
+              {product.colors.length > 4 && (
+                <span className="text-[10px] text-[var(--color-muted)] leading-none">
+                  +{product.colors.length - 4}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
+
+export default ProductCard;

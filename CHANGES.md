@@ -92,3 +92,61 @@ Generated clean, transparent-background SVG vectors directly from the original r
 - **On-Load Motion**: 400ms 12px text fade up (`hero-fade-up`) and 500ms image fade in (`hero-fade-in`).
 - **Accessibility**: Automatically disabled for users with `prefers-reduced-motion: reduce`.
 - **LCP & SEO**: `priority` image loading with `sizes="(min-width: 1024px) 58vw, 100vw"`, quality 85, fallback background `#EDEAE4` to eliminate layout shift, and exactly one `<h1>`.
+
+
+# Part 3 Redesign Changes: Homepage Sections Below the Hero
+
+## 1. What Was Removed Entirely
+- **Marquee Ticker**: Removed the continuous scrolling text banner (`MarqueeBanner`).
+- **Trust Strip**: Removed the 4-card banner with pastel rounded icon squares (`Delivery Countrywide`, `Physical Shop`, `WhatsApp Orders`, `100% Quality Fits`).
+- **Sparkle Icons & Badges**: Removed all emoji/sparkle badges (`HOT ITEM • GOYARD PATTERN`, `NEW DROP` badges across every item).
+- **Category Circle Avatars**: Removed the Instagram-story-style circle row (`CategoryCircles`).
+- **Dark Editorial Cards**: Removed the heavy black lookbook card (`EditorialStory`) and dark "Goyard-Style Luxury Backpack" spotlight card.
+- **Pink Promo Banner**: Removed the gradient pink banner (`PromoBar`).
+- **Placeholder Testimonials**: Removed the "Happy Clients" card trio with placeholder quotes (`Testimonials`).
+- **Filter Pills from Home**: Removed category filter tabs from the homepage product view (moved exclusively to `/shop`).
+
+## 2. Sections Rebuilt (In Strict Specified Order)
+1. **Category Tiles (`CategoryTiles.tsx`)**:
+   - Asymmetric 12-column grid.
+   - Backpacks: Tall tile (5 columns, aspect 4:5).
+   - Crossbody Bags & Designer Bags: Two stacked tiles (7 columns, each aspect 16:9).
+   - Clothing & Accessories: Two equal tiles below (6 columns each, aspect 3:2).
+   - Image zooms 1.03x over 300ms on hover.
+   - Category name and real item count rendered strictly **below** the image (no overlays, no gradients, no paragraphs).
+   - Configured via `src/config/categories.ts`.
+2. **New Arrivals (`NewArrivals.tsx` & `ProductCard.tsx`)**:
+   - Shared `SectionHeader` with title "New arrivals" and text link "View all".
+   - 4-column grid on desktop, 2-column grid on mobile (gap 24px desktop / 16px mobile).
+   - Shows at most 8 items, strictly trimmed to multiples of 4 so rows are complete on both desktop and mobile without any orphan cards.
+   - Built shared `ProductCard`:
+     - 4:5 image on `#EDEAE4` with 2px radius.
+     - On desktop hover: swaps to second product image if available, and displays desktop "Quick add" button at image bottom.
+     - On mobile tap: navigates directly to `/product/[slug]`.
+     - 14px name, 14px price formatted in KES using `Price` primitive.
+     - 12px color swatches only when variants exist.
+     - "New" tag rendered top-left **only** if product `createdAt` is under 14 days old (never on every item).
+3. **Editorial Band (`EditorialBand.tsx`)**:
+   - 560px tall desktop band with full-width image.
+   - Solid off-white panel (`bg-[var(--color-background)]`) cleanly overlapping the image's left edge without any dark overlay on the photo.
+   - Real specs: "Durable canvas construction with an adjustable nylon shoulder strap. Fits phones up to 6.8 inches, passport, and daily essentials."
+   - Configured via `src/config/editorial.ts`.
+4. **Social Proof (`SocialProof.tsx`) — CONDITIONAL**:
+   - *Status*: **Hidden** due to missing verified data.
+   - *Reason*: `/public/proof/` does not exist in the workspace, and no real customer review records exist in the database. Per instructions, placeholder testimonials were not generated.
+5. **First-Order Offer Line (`OfferLine.tsx`)**:
+   - Slim 48px off-white banner with hairline borders top and bottom.
+   - Clean accent text: "First order? Get 10% off when you order on WhatsApp." with "Message us" WhatsApp link.
+   - Controlled via `src/config/offers.ts` (`offers.firstOrder.enabled: true`).
+6. **Store Info (`StoreInfo.tsx`)**:
+   - Two columns inside `Container` with vertical hairline divider.
+   - Left column: h2 "Visit the shop", factual address, phone link, and clean text links ("Open in Google Maps", "Chat on WhatsApp").
+   - Right column: Clean two-column table of store hours pulling from the **same** `STORE_HOURS` constant as Part 1, ensuring 100% synchronization with the footer.
+7. **Instagram Grid (`InstagramGrid.tsx`) — CONDITIONAL**:
+   - *Status*: **Hidden** due to missing images.
+   - *Reason*: `/public/instagram/` contains 0 images (fewer than the required 6) and no active external feed integration exists.
+
+## 3. Configuration Files Created
+- `src/config/categories.ts`: Category tile slugs, labels, image sources, neutral alt text, and object positions.
+- `src/config/editorial.ts`: Editorial band headlines, copy, links, and product photo settings.
+- `src/config/offers.ts`: Promotional offer copy, WhatsApp phone, default message, and enabled toggle.
