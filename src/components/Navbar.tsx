@@ -8,6 +8,7 @@ import { Search, ShoppingBag, Menu, X, MapPin } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
 import { STORE_HOURS } from "@/lib/constants";
 import AnnouncementBar from "./AnnouncementBar";
+import { CartDrawer } from "@/components/cart/CartDrawer";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -111,6 +112,8 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
 
   const rawItemCount = useCartStore((s) => s.totalItems());
+  const openDrawer = useCartStore((s) => s.openDrawer);
+  const announcement = useCartStore((s) => s.announcement);
   const itemCount = mounted ? rawItemCount : 0;
 
   useEffect(() => {
@@ -204,8 +207,9 @@ export default function Navbar() {
               <Search className="h-5 w-5" />
             </Link>
 
-            <Link
-              href="/cart"
+            <button
+              type="button"
+              onClick={openDrawer}
               aria-label={`Shopping cart with ${itemCount} items`}
               className="relative flex items-center justify-center min-h-[44px] min-w-[44px] text-[#111111] hover:text-[#BB4C6C] transition-colors cursor-pointer touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
             >
@@ -215,7 +219,7 @@ export default function Navbar() {
                   {itemCount > 99 ? "99+" : itemCount}
                 </span>
               )}
-            </Link>
+            </button>
           </div>
         </div>
       </header>
@@ -290,6 +294,16 @@ export default function Navbar() {
           <p>{STORE_HOURS.sunday}</p>
         </div>
       </aside>
+
+      {/* Cart Drawer */}
+      <CartDrawer />
+
+      {/* Accessible Live Region */}
+      {announcement && (
+        <div className="sr-only" role="status" aria-live="polite">
+          {announcement}
+        </div>
+      )}
     </>
   );
 }

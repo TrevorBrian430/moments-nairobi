@@ -12,6 +12,7 @@
   --color-accent-light: #CF6885;
   --color-whatsapp: #1FA855;
   --color-whatsapp-hover: #198e47;
+  --color-error: #B3261E;
 
   /* Backward-compatible brand alias */
   --color-brand: #BB4C6C;
@@ -40,6 +41,7 @@
   --border-hairline: #E4E0D8;
   --accent: #BB4C6C;
   --whatsapp: #1FA855;
+  --error: #B3261E;
 }
 
 @layer base {

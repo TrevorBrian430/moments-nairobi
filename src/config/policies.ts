@@ -1,17 +1,37 @@
 import { STORE_INFO, STORE_HOURS } from "@/lib/constants";
 
-export interface PolicyItem {
-  title: string;
-  summary: string;
-  details: string;
+export interface DeliveryTown {
+  name: string;
+  zone: "cbd" | "greater-nairobi" | "countrywide";
+  fee: number;
 }
 
 export const POLICIES = {
   delivery: {
     title: "Delivery",
     summary: "Free in Nairobi CBD. Courier countrywide KES 300 to 500.",
+    cartSummary: "Free in Nairobi CBD. Courier countrywide KES 300 to 500.",
     details:
       "Orders within Nairobi CBD qualify for free same-day delivery. Countrywide courier dispatch across Kenya is KES 300 to 500, delivered within 24 hours via reliable parcel couriers.",
+    freeThreshold: null, // No misleading free countrywide threshold
+    towns: [
+      { name: "Nairobi - CBD", zone: "cbd", fee: 0 },
+      { name: "Nairobi - Westlands / Parklands / Kilimani", zone: "greater-nairobi", fee: 300 },
+      { name: "Nairobi - Karen / Lang'ata / Rongai", zone: "greater-nairobi", fee: 300 },
+      { name: "Nairobi - Kasarani / Roysambu / Kahawa", zone: "greater-nairobi", fee: 300 },
+      { name: "Nairobi - Eastlands / Embakasi", zone: "greater-nairobi", fee: 300 },
+      { name: "Mombasa", zone: "countrywide", fee: 500 },
+      { name: "Nakuru", zone: "countrywide", fee: 500 },
+      { name: "Kisumu", zone: "countrywide", fee: 500 },
+      { name: "Eldoret", zone: "countrywide", fee: 500 },
+      { name: "Thika", zone: "greater-nairobi", fee: 300 },
+      { name: "Machakos", zone: "countrywide", fee: 400 },
+      { name: "Nyeri", zone: "countrywide", fee: 500 },
+      { name: "Naivasha", zone: "countrywide", fee: 400 },
+      { name: "Kisii", zone: "countrywide", fee: 500 },
+      { name: "Meru", zone: "countrywide", fee: 500 },
+      { name: "Other Towns in Kenya", zone: "countrywide", fee: 500 },
+    ] as DeliveryTown[],
   },
   pickup: {
     title: "Pickup",
@@ -31,5 +51,11 @@ export const POLICIES = {
     summary: "48-hour exchange for size or color swap with tags attached and receipt.",
     details:
       "We accept size or color exchanges within 48 hours of purchase or receipt. Items must be in original, unwashed condition with tags attached and accompanied by your order confirmation.",
+  },
+  payments: {
+    payOnPickup: true,
+    payOnDelivery: true,
+    payOnline: false, // Activated only when a real online provider (e.g. Pesapal) is configured
+    acceptedLabel: "", // Left empty until Pesapal is live so the site does not promise what it cannot take
   },
 } as const;

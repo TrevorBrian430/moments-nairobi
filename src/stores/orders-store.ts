@@ -18,6 +18,9 @@ export interface OrderItem {
   color?: string;
   size?: string;
   image: string;
+  variantId?: string;
+  variantLabel?: string;
+  variantImage?: string;
 }
 
 export interface Order {
@@ -26,22 +29,33 @@ export interface Order {
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
-  deliveryZone: string;
-  deliveryAddress: string;
+  deliveryMethod?: "pickup" | "courier";
+  deliveryZone?: string;
+  deliveryTown?: string;
+  deliveryAddress?: string;
   notes?: string;
   items: OrderItem[];
   subtotal: number;
   deliveryFee: number;
   total: number;
-  paymentMethod: "whatsapp" | "mpesa" | "card";
+  paymentMethod: string;
+  paymentStatus: "pending" | "paid" | "failed";
+  paymentReference?: string;
+  paidAt?: string;
   status: OrderStatus;
   createdAt: string;
 }
 
 interface OrdersState {
   orders: Order[];
-  addOrder: (order: Omit<Order, "id" | "orderNumber" | "createdAt" | "status">) => Order;
+  addOrder: (
+    order: Omit<Order, "id" | "orderNumber" | "createdAt" | "status">
+  ) => Order;
   updateOrderStatus: (id: string, status: OrderStatus) => void;
+  updatePaymentStatus: (
+    id: string,
+    paymentStatus: "pending" | "paid" | "failed"
+  ) => void;
   deleteOrder: (id: string) => void;
 }
 
@@ -51,13 +65,14 @@ const INITIAL_DEMO_ORDERS: Order[] = [
     orderNumber: "MN-98214",
     customerName: "Dennis Mwangi",
     customerPhone: "0712345678",
+    deliveryMethod: "courier",
     deliveryZone: "Nairobi CBD",
     deliveryAddress: "Kenyatta Ave, ICEA Building, 5th Floor",
     notes: "Please call when nearby",
     items: [
       {
-        productId: "goyard-style-backpack",
-        name: "Goyard-Style Backpack",
+        productId: "designer-backpack",
+        name: "Designer Backpack",
         price: 4500,
         quantity: 1,
         color: "Blue",
@@ -67,7 +82,8 @@ const INITIAL_DEMO_ORDERS: Order[] = [
     subtotal: 4500,
     deliveryFee: 0,
     total: 4500,
-    paymentMethod: "whatsapp",
+    paymentMethod: "pickup",
+    paymentStatus: "pending",
     status: "Pending",
     createdAt: new Date().toLocaleDateString("en-GB", {
       day: "numeric",
@@ -82,6 +98,7 @@ const INITIAL_DEMO_ORDERS: Order[] = [
     orderNumber: "MN-98215",
     customerName: "Kevin Otieno",
     customerPhone: "0723456789",
+    deliveryMethod: "courier",
     deliveryZone: "Greater Nairobi",
     deliveryAddress: "Westlands, Rhapta Road, Block B4",
     items: [
@@ -98,14 +115,15 @@ const INITIAL_DEMO_ORDERS: Order[] = [
         name: "Wide Leg Jeans",
         price: 2000,
         quantity: 1,
-        size: "34",
-        image: "/images/shacket-white.jpg",
+        color: "Indigo",
+        image: "/images/wide leg jeans.jpg",
       },
     ],
     subtotal: 4700,
     deliveryFee: 300,
     total: 5000,
-    paymentMethod: "mpesa",
+    paymentMethod: "delivery",
+    paymentStatus: "pending",
     status: "Confirmed",
     createdAt: new Date().toLocaleDateString("en-GB", {
       day: "numeric",
@@ -119,24 +137,28 @@ const INITIAL_DEMO_ORDERS: Order[] = [
 
 export const useOrdersStore = create<OrdersState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       orders: INITIAL_DEMO_ORDERS,
 
       addOrder: (orderData) => {
-        const id = `ord-${Date.now()}`;
-        const orderNumber = `MN-${Math.floor(10000 + Math.random() * 90000)}`;
+        const id = `ord-${Date.now().toString(36)}`;
+        const randomDigits = Math.floor(10000 + Math.random() * 90000);
+        const orderNumber = `MN-${randomDigits}`;
+        const createdAt = new Date().toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
         const newOrder: Order = {
           ...orderData,
           id,
           orderNumber,
+          paymentStatus: orderData.paymentStatus || "pending",
           status: "Pending",
-          createdAt: new Date().toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          createdAt,
         };
 
         set((state) => ({
@@ -152,6 +174,14 @@ export const useOrdersStore = create<OrdersState>()(
         }));
       },
 
+      updatePaymentStatus: (id, paymentStatus) => {
+        set((state) => ({
+          orders: state.orders.map((o) =>
+            o.id === id ? { ...o, paymentStatus } : o
+          ),
+        }));
+      },
+
       deleteOrder: (id) => {
         set((state) => ({
           orders: state.orders.filter((o) => o.id !== id),
@@ -159,7 +189,7 @@ export const useOrdersStore = create<OrdersState>()(
       },
     }),
     {
-      name: "moments-orders-cms",
+      name: "moments-orders",
     }
   )
 );

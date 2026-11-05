@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { STORE_INFO, STORE_HOURS } from "@/lib/constants";
+import { POLICIES } from "@/config/policies";
 
 const SHOP_LINKS = [
   { label: "Shop All", href: "/shop" },
@@ -122,10 +123,12 @@ export default function Footer() {
           <p className="text-xs text-[#6B6B66]">
             &copy; {currentYear} Moments Nairobi. Twilight Suites F4-08. All rights reserved.
           </p>
-          {/* One plain text line instead of pills */}
-          <p className="text-xs text-[#6B6B66]">
-            M-Pesa and card accepted
-          </p>
+          {/* Driven by policies.ts; empty until Pesapal is live */}
+          {POLICIES.payments.acceptedLabel ? (
+            <p className="text-xs text-[#6B6B66]">
+              {POLICIES.payments.acceptedLabel}
+            </p>
+          ) : null}
         </div>
       </div>
     </footer>

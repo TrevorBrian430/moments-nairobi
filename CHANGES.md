@@ -267,3 +267,74 @@ Generated clean, transparent-background SVG vectors directly from the original r
   - `not-found.tsx`: Clean 404 state with "Return to shop" action.
   - `loading.tsx`: Zero-layout-shift skeleton for gallery and info column.
 
+
+# Part 6 Redesign Changes: Cart Drawer, /cart Page, Checkout Flow & Order Confirmation
+
+## 1. Step 0 Audit: Previous Implementation & Bugs Found
+- **Cart Storage & Line Items**:
+  - Previously stored only `productId`, `name`, `price`, `image`, `color`, `size`, `quantity` without variant tracking.
+  - Cart item thumbnails frequently defaulted to the first product image or mismatched angles (e.g. car-seat interior photo for Brown Monogram) because variant image metadata was discarded at add-to-cart time.
+- **Badge Count Discrepancy (Bug #1)**:
+  - Header badge counted sum of quantities (`totalItems`), but `/cart` page displayed `({items.length} items)` (unique line items). If a user added 2 of the same item, the header said "2" while the page said "(1 items)" with incorrect grammar.
+- **Misleading Delivery Claims (Bug #3)**:
+  - Previous cart page featured a gamified progress banner stating *"You unlocked FREE Countrywide Delivery anywhere in Kenya"* above KES 7,000, contradicting the store policy of KES 300–500 courier delivery and creating customer confusion.
+- **Price Stale State (Bug #4)**:
+  - Cart stored static prices in `localStorage` without synchronizing against the current product catalog, allowing stale or modified prices to persist.
+- **Payment Methods Found vs. Placeholder**:
+  - *WhatsApp*: Real action opening a prefilled WhatsApp chat with the store.
+  - *M-Pesa STK Push*: Pure placeholder ("Pay via STK push (coming soon)"). Selecting it simply showed a fake confirmation screen without any backend integration.
+  - *Card*: Pure placeholder mentioned in text ("M-Pesa & Card payments available at checkout"); zero payment gateway or hosted fields existed.
+- **Unverified Totals & Client Trust (Bug #5 & #6)**:
+  - Orders were previously recorded entirely on the client into Zustand state without server verification, allowing spoofed client totals or prices.
+
+## 2. What Was Removed Entirely
+- **Gamified Delivery Banner**: Removed the gradient progress bar, confetti emojis (`🎉`), and unbacked "Free Countrywide Delivery" unlocks.
+- **Styling Anti-Patterns**: Removed rounded summary card fill (`rounded-2xl bg-gray-50`), heart-green-heart payment line (`💚 M-Pesa & Card payments...`), and pill buttons.
+- **Floating Clear Link**: Removed the loose "Clear all items" text link floating under the item list; moved to a clean, confirmed action in the list header.
+- **Emojis & Em Dashes**: Removed all emojis (`👋`, `🎉`, `💚`) and em dashes (`—`) across cart, checkout, confirmation, and WhatsApp prefilled messages.
+- **Third-Party Brand Names**: Removed all mentions of third-party trademarks (Goyard, Louis Vuitton) from cart lines, checkout reviews, order receipts, and WhatsApp text.
+
+## 3. Bugs Fixed
+1. **Quantity Count & Pluralization**: Header badge, cart drawer header, and cart page heading now uniformly display the summed quantity with correct singular/plural grammar ("1 item" vs "2 items").
+2. **Cart Thumbnail Matching**: Added `variantId`, `variantLabel`, and `variantImage` to `CartItem`. LocalStorage migration (version 2) upgrades existing items to match their variant pictures accurately.
+3. **Delivery Single Source of Truth**: Unified delivery text across drawer, cart page, checkout, and footer through `src/config/policies.ts`. Replaced hardcoded delivery fees with town-specific policies and CBD free pickup.
+4. **Catalog Synchronization**: Added `syncWithCatalog()` in `useCartStore` to re-verify prices, detect discontinued or out-of-stock items ("No longer available"), and display a "Price updated" badge when catalog prices change.
+5. **Server-Side Price & Total Verification**: Created `/api/orders` which recomputes item prices and delivery fees server-side against catalog data. Client totals are never trusted.
+6. **Double Submission & Form Persistence**: Checkout forms persist in `sessionStorage` across page refreshes and use idempotency keys to prevent duplicate order submissions.
+
+## 4. Components & Architecture Created
+- **Payment Provider Seam (`src/lib/payments/`)**:
+  - `src/lib/payments/provider.ts`: Abstract `PaymentProvider` interface for `createPayment` and `getStatus`.
+  - `src/lib/payments/manual.ts`: `ManualPaymentProvider` implementing offline pickup/delivery handling (no redirect, pending status). Selected via `PAYMENT_PROVIDER=manual`.
+  - Future Pesapal integration will implement the exact same interface seamlessly.
+- **Server Orders DB & Webhook (`src/lib/server-orders.ts` & `/api/`)**:
+  - `createOrderServer`: Recomputes prices, validates Kenyan phone formats, calculates delivery, and saves order.
+  - `POST /api/orders`: Secure order creation API.
+  - `POST /api/payments/ipn`: Webhook receiver stub for asynchronous payment provider confirmation.
+- **`CartDrawer` (`src/components/cart/CartDrawer.tsx`)**:
+  - 420px desktop slide-in drawer (full width mobile, max 100vw, `#F6F4F0` surface, hairline border, shadow allowed).
+  - Traps focus, closes on Escape/backdrop click, locks body scroll.
+  - Sticky footer with subtotal, policy delivery note, 52px accent "Checkout" button, and "View full cart" link.
+  - Linked to header cart icon and automatic opening on `addItem`.
+- **`CartPage` (`src/app/(storefront)/cart/page.tsx`)**:
+  - 12-column responsive layout (7 cols items, 5 cols sticky summary).
+  - 5-second inline "Removed. Undo" restoration capability.
+  - Mobile sticky bottom checkout bar when order summary scrolls out of view.
+- **`CartLine` (`src/components/cart/CartLine.tsx`)**:
+  - 96px 4:5 variant thumbnail, product link, variant label, `Price` primitive, `QuantityStepper`, line total, and "Remove" text button.
+- **`OrderSummary` (`src/components/cart/OrderSummary.tsx`)**:
+  - Hairline bordered card with subtotal, delivery policy text, total, accent Checkout button, and prefilled WhatsApp order CTA.
+- **`CheckoutPage` (`src/app/(storefront)/checkout/page.tsx`)**:
+  - Single-page checkout with inline blur validation and error display in token red (`#B3261E`).
+  - Contact details (Kenyan phone normalization to `+254`), Delivery method selection, Payment method selection, and Order review with disabled state & loading spinner during submission.
+- **`DeliveryMethod` (`src/components/checkout/DeliveryMethod.tsx`)**:
+  - Hairline radio cards for CBD Pickup (Twilight Suites F4-08) and Courier dispatch with town select from `policies.ts`.
+- **`PaymentMethod` (`src/components/checkout/PaymentMethod.tsx`)**:
+  - Displays only what `policies.ts` enables: "Pay on pickup" and "Pay on delivery". "Pay online" is hidden until a live online provider is configured.
+- **`MpesaWaiting` (`src/components/checkout/MpesaWaiting.tsx`)**:
+  - 90-second prompt countdown modal with retry and cancel options.
+- **`OrderConfirmation` (`src/app/(storefront)/order/[id]/page.tsx`)**:
+  - Server-rendered order confirmation reading payment status directly from the server.
+  - Method-specific 3-line next steps (pickup vs. courier), items overview, and prefilled WhatsApp support link.
+
+
