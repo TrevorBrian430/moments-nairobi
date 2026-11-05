@@ -51,3 +51,44 @@ Generated clean, transparent-background SVG vectors directly from the original r
 - `Container`: Max width 1280px with 8px-scale responsive padding (`px-4 sm:px-6 lg:px-8`).
 - `SectionLabel`: 11px uppercase label with `0.12em` tracking in `#6B6B66`.
 - `Price`: Clean KES currency formatting with optional accent emphasis.
+
+
+# Part 2 Redesign Changes: Homepage Hero Section
+
+## 1. What Was Removed
+- **Full-Bleed Photo & Dark Overlays**: Removed the full-bleed background image and heavy dark/gradient overlays (`bg-gradient-to-t`, `md:bg-gradient-to-r`). Replaced with a calm split layout on the neutral `--background` (`#F6F4F0`) token without gradient, overlay, or pattern.
+- **Pill Badge**: Removed the rounded pill badge (`bg-white/10` with pulsing dot).
+- **Two-Line Slogan**: Removed "Everyday Fits. Every Occasion." in favor of a calm, factual h1: "Backpacks that fit a 15-inch laptop."
+- **Multiple Buttons & Duplicate WhatsApp CTA**: Removed the secondary "Order via WhatsApp" button from the hero (covered globally by FloatingWhatsApp). Left exactly one primary CTA button and one clean text link.
+- **Clutter**: Excluded all star ratings, sparkle icons, emojis, countdown timers, marquees, and trust strips from the hero section.
+
+## 2. Layout & Responsive Architecture
+- **Desktop (>= 1024px)**:
+  - 12-column split grid inside `Container` (`max-w-[1280px]`).
+  - Left 5 columns: vertically centered, left-aligned text block.
+  - Right 7 columns: image panel bleeding edge to edge to the right viewport edge (`hero-desktop-bleed` with `calc(50% - 50vw)` right margin) while its left edge aligns directly to column 6.
+  - Strict min height 640px, max height 760px. 2px radius on image panel.
+- **Mobile (< 1024px)**:
+  - Stacked vertically: image first with `aspect-[4/5]`, full width, 0px radius (`rounded-none`).
+  - Text block placed directly below with 24px side padding (`px-6`).
+  - Headline clamp lower bound set to 36px.
+  - Primary button set to full width (`w-full sm:w-auto`), with "Browse everything" text link cleanly centered beneath it.
+
+## 3. Configuration & Content
+- **Config File (`src/config/hero.ts`)**:
+  - Created central config exporting `{ src, alt, objectPosition }`.
+  - Added TODO comment requesting a dedicated studio cutout on `#EDEAE4` / neutral light grey.
+  - Selected `/images/bagpack 2.jpg` cropped tightly via `objectPosition: "center 45%"` to avoid busy background.
+  - Neutral alt text: `"Black embossed backpack, front view"` (zero third-party brand names).
+- **Hierarchy & Primitives**:
+  - Label: `SectionLabel` plain text ("Nairobi CBD, Tom Mboya Street").
+  - Heading (h1): `Inter_Tight 500`, `clamp(36px, 5vw, 72px)`, line-height 1.05, tracking -0.02em, ink color.
+  - Copy: 17px muted paragraph.
+  - Primary CTA: `Button` primitive (accent `#BB4C6C`, 48px min height).
+  - Secondary CTA: Clean text link ("Browse everything").
+  - Sub-line: 13px muted line ("Pickup at Twilight Suites F4-08. Courier countrywide.").
+
+## 4. Motion & Performance
+- **On-Load Motion**: 400ms 12px text fade up (`hero-fade-up`) and 500ms image fade in (`hero-fade-in`).
+- **Accessibility**: Automatically disabled for users with `prefers-reduced-motion: reduce`.
+- **LCP & SEO**: `priority` image loading with `sizes="(min-width: 1024px) 58vw, 100vw"`, quality 85, fallback background `#EDEAE4` to eliminate layout shift, and exactly one `<h1>`.

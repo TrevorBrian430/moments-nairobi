@@ -1,69 +1,76 @@
-"use client";
-
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MessageCircle, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Container } from "@/components/ui/Container";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { HERO_CONFIG } from "@/config/hero";
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[520px] sm:min-h-[580px] md:min-h-[72vh] w-full flex items-center overflow-hidden">
-      {/* Background Image */}
-      <Image
-        src="/images/bagpack 1.jpg"
-        alt="Premium LV monogram backpacks from Moments Nairobi"
-        fill
-        priority
-        className="object-cover object-center scale-105"
-        sizes="100vw"
-      />
+    <section className="relative w-full overflow-hidden bg-[var(--color-background)]">
+      <Container className="h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-0 lg:min-h-[640px] lg:max-h-[760px] lg:h-[700px] items-stretch">
+          {/* Left Column: Text Content (order-2 on mobile, order-1 on desktop) */}
+          <div className="order-2 lg:order-1 lg:col-span-5 flex flex-col justify-center px-6 lg:px-0 py-8 sm:py-10 lg:py-0 text-left hero-animate-text z-10">
+            {/* 1. Small label */}
+            <SectionLabel className="mb-3 sm:mb-4">
+              Nairobi CBD, Tom Mboya Street
+            </SectionLabel>
 
-      {/* Gradient Overlays: dark on mobile bottom/center, subtle on desktop right */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/75 to-black/50 md:bg-gradient-to-r md:from-black/90 md:via-black/60 md:to-black/30" />
+            {/* 2. Headline */}
+            <h1 className="font-heading font-medium text-[clamp(36px,5vw,72px)] leading-[1.05] tracking-[-0.02em] text-[var(--color-ink)] max-w-xl mb-4 sm:mb-5">
+              Backpacks that fit a 15-inch laptop.
+            </h1>
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:py-24 md:py-28 text-center md:text-left animate-fade-in">
-        {/* Top Tagline Pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] sm:text-xs font-semibold tracking-wider text-[#D4899A] uppercase mb-4">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#B85C6E] animate-pulse" />
-          <span>Men&apos;s Fashion &bull; Bags &bull; Accessories</span>
+            {/* 3. Supporting copy */}
+            <p className="text-[17px] leading-relaxed text-[var(--color-muted)] max-w-lg mb-6 sm:mb-8">
+              Monogram and chevron print backpacks, crossbody bags and streetwear.
+              From KES 1,500. Pick up in town within the hour.
+            </p>
+
+            {/* 4. Actions: One primary button + one text link */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 mb-5 sm:mb-6 w-full sm:w-auto">
+              <Button
+                variant="primary"
+                size="lg"
+                href="/shop?category=backpacks"
+                className="w-full sm:w-auto min-h-[48px] px-8 text-sm"
+              >
+                Shop backpacks
+              </Button>
+
+              <Link
+                href="/shop"
+                className="text-sm font-medium text-[var(--color-ink)] hover:text-[var(--color-accent)] underline-offset-4 hover:underline py-2 transition-colors duration-200 text-center select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+              >
+                Browse everything
+              </Link>
+            </div>
+
+            {/* 5. Pickup / Courier factual line */}
+            <p className="text-[13px] text-[var(--color-muted)]">
+              Pickup at Twilight Suites F4-08. Courier countrywide.
+            </p>
+          </div>
+
+          {/* Right Column: Image Panel (order-1 on mobile, order-2 on desktop) */}
+          <div className="order-1 lg:order-2 lg:col-span-7 h-full w-full hero-animate-image hero-desktop-bleed relative">
+            <div className="relative w-full aspect-[4/5] lg:aspect-auto lg:h-full lg:min-h-[640px] lg:max-h-[760px] rounded-none lg:rounded-[2px] overflow-hidden bg-[var(--color-surface-fallback)]">
+              <Image
+                src={HERO_CONFIG.src}
+                alt={HERO_CONFIG.alt}
+                fill
+                priority
+                quality={85}
+                sizes="(min-width: 1024px) 58vw, 100vw"
+                className="object-cover"
+                style={{ objectPosition: HERO_CONFIG.objectPosition }}
+              />
+            </div>
+          </div>
         </div>
-
-        {/* Main Heading */}
-        <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight mb-4 max-w-2xl mx-auto md:mx-0">
-          Everyday Fits.
-          <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
-            Every Occasion.
-          </span>
-        </h1>
-
-        {/* Subtext */}
-        <p className="text-sm sm:text-base md:text-lg text-gray-200 max-w-lg mb-6 sm:mb-8 leading-relaxed mx-auto md:mx-0">
-          Premium designer backpacks, crossbody bags, streetwear denim &amp; essentials.
-          Available for pickup in Nairobi CBD or countrywide delivery.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 justify-center md:justify-start max-w-sm sm:max-w-none mx-auto md:mx-0">
-          <Link
-            href="/shop"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#B85C6E] hover:bg-[#9A4A5A] text-white font-bold rounded-full px-7 py-3.5 text-sm shadow-xl transition-all duration-200 active:scale-95"
-          >
-            <span>Shop Collection</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-
-          <a
-            href="https://wa.me/254702947981?text=Hi%20Moments%20Nairobi!%20I'd%20like%20to%20order%20from%20your%20collection"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd59] text-white font-bold rounded-full px-7 py-3.5 text-sm shadow-xl transition-all duration-200 active:scale-95"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>Order via WhatsApp</span>
-          </a>
-        </div>
-      </div>
+      </Container>
     </section>
   );
 }
