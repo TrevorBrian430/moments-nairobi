@@ -84,7 +84,7 @@ export default function ProductGrid({
               type="button"
               onClick={() => setActiveCategory("all")}
               className={cn(
-                "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer touch-manipulation active:scale-95",
+                "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all",
                 activeCategory === "all"
                   ? "bg-gray-900 text-white shadow-sm"
                   : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
@@ -98,7 +98,7 @@ export default function ProductGrid({
                 type="button"
                 onClick={() => setActiveCategory(cat.slug)}
                 className={cn(
-                  "shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer touch-manipulation active:scale-95",
+                  "shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-bold transition-all",
                   activeCategory === cat.slug
                     ? "bg-[#B85C6E] text-white shadow-sm"
                     : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"

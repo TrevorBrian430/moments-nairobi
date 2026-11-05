@@ -39,9 +39,9 @@ export default function CartPage() {
   if (!mounted) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
-        <div className="animate-pulse space-y-4 text-center">
-          <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto" />
-          <div className="h-6 w-32 bg-gray-200 rounded mx-auto" />
+        <div className="animate-pulse space-y-4 max-w-sm w-full">
+          <div className="h-12 bg-gray-100 rounded-full w-2/3 mx-auto" />
+          <div className="h-4 bg-gray-100 rounded w-1/2 mx-auto" />
         </div>
       </div>
     );

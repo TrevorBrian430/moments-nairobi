@@ -28,10 +28,16 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const itemCount = useCartStore((s) => s.totalItems());
+
+  const rawItemCount = useCartStore((s) => s.totalItems());
+  const itemCount = mounted ? rawItemCount : 0;
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  /* ---------- sticky shadow on scroll ---------- */
+  useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -134,7 +140,7 @@ export default function Navbar() {
               className="relative p-2 text-gray-800 hover:text-[#B85C6E] transition-colors cursor-pointer touch-manipulation"
             >
               <ShoppingBag className="h-5 w-5" />
-              {mounted && itemCount > 0 && (
+              {itemCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 flex h-4.5 w-4.5 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-[#B85C6E] text-[10px] font-extrabold text-white shadow-sm pointer-events-none">
                   {itemCount > 99 ? "99+" : itemCount}
                 </span>
@@ -144,20 +150,25 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* ====== Mobile slide-in drawer (ONLY mounted when open) ====== */}
+      {/* ====== Mobile slide-in drawer ====== */}
+      {/* Backdrop */}
       {mobileOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm lg:hidden animate-fade-in"
-            onClick={() => setMobileOpen(false)}
-            aria-hidden="true"
-          />
+        <div
+          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm lg:hidden cursor-pointer"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
-          {/* Drawer panel */}
-          <aside
-            className="fixed inset-y-0 left-0 z-[70] w-80 max-w-[85vw] bg-white shadow-2xl lg:hidden flex flex-col"
-          >
+      {/* Drawer panel */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-[70] w-80 max-w-[85vw] bg-white shadow-2xl transition-all duration-300 ease-in-out lg:hidden flex flex-col",
+          mobileOpen
+            ? "translate-x-0 pointer-events-auto visible"
+            : "-translate-x-full pointer-events-none invisible"
+        )}
+      >
         {/* Drawer header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <Link
@@ -234,7 +245,5 @@ export default function Navbar() {
         </div>
       </aside>
     </>
-  )}
-</>
   );
 }

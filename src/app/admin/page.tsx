@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -52,7 +52,12 @@ const AVAILABLE_SAMPLE_IMAGES = [
 ];
 
 export default function AdminCMSPage() {
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>("products");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Stores
   const { products, addProduct, updateProduct, deleteProduct, resetToDefaults } =
@@ -279,6 +284,17 @@ export default function AdminCMSPage() {
       return { ...prev, colors: nextColors };
     });
   };
+
+  if (!mounted) {
+    return (
+      <div className="flex w-full h-full min-h-[85vh] bg-slate-50 items-center justify-center p-8">
+        <div className="animate-pulse flex flex-col items-center gap-3">
+          <div className="h-10 w-10 bg-slate-200 rounded-xl" />
+          <div className="h-4 w-32 bg-slate-200 rounded" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full h-full min-h-[85vh] bg-slate-50 font-sans">

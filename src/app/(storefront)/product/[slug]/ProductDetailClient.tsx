@@ -34,12 +34,7 @@ export default function ProductDetailClient({
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
 
-  const initialImage =
-    product.colors && product.colors.length > 0 && product.colors[0].image
-      ? product.colors[0].image
-      : product.images[0];
-
-  const [selectedImage, setSelectedImage] = useState<string>(initialImage);
+  const [selectedImage, setSelectedImage] = useState<string>(product.images[0]);
   const [selectedColor, setSelectedColor] = useState<string | undefined>(
     product.colors && product.colors.length > 0 ? product.colors[0].name : undefined
   );
@@ -324,16 +319,16 @@ export default function ProductDetailClient({
               <button
                 type="button"
                 onClick={handleBuyNow}
-                className="w-full bg-gray-900 hover:bg-black text-white font-bold py-3.5 px-4 rounded-full text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer touch-manipulation select-none"
+                className="w-full bg-gray-900 hover:bg-black text-white font-bold py-3.5 px-4 rounded-full text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer touch-manipulation"
               >
-                <span className="pointer-events-none">Buy Now</span>
+                Buy Now
               </button>
 
               <button
                 type="button"
                 onClick={handleAddToCart}
                 className={cn(
-                  "w-full font-bold py-3.5 px-4 rounded-full text-xs sm:text-sm border-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation active:scale-95 select-none",
+                  "w-full font-bold py-3.5 px-4 rounded-full text-xs sm:text-sm border-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation active:scale-95",
                   added
                     ? "border-green-600 bg-green-50 text-green-700"
                     : "border-gray-900 text-gray-900 hover:bg-gray-50"
@@ -341,13 +336,13 @@ export default function ProductDetailClient({
               >
                 {added ? (
                   <>
-                    <Check className="h-4 w-4 text-green-600 pointer-events-none" />
-                    <span className="pointer-events-none">Added!</span>
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Added!</span>
                   </>
                 ) : (
                   <>
-                    <ShoppingBag className="h-4 w-4 pointer-events-none" />
-                    <span className="pointer-events-none">Add to Cart</span>
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>Add to Cart</span>
                   </>
                 )}
               </button>
