@@ -1,11 +1,22 @@
+export const STORE_HOURS = {
+  weekdays: "Monday - Friday: 8:30 AM - 7:30 PM",
+  saturday: "Saturday: 9:00 AM - 7:30 PM",
+  sunday: "Sunday: Available on Call / WhatsApp",
+  displayList: [
+    { days: "Monday - Friday", hours: "8:30 AM - 7:30 PM" },
+    { days: "Saturday", hours: "9:00 AM - 7:30 PM" },
+    { days: "Sunday", hours: "Available on Call / WhatsApp" },
+  ],
+} as const;
+
 export const STORE_INFO = {
   name: "Moments Nairobi",
-  tagline: "Own Your Moment",
-  description: "Men's Fashion • Bags • Accessories — Everyday fits. Every occasion.",
+  tagline: "Curated Men's Fashion & Bags",
+  description: "Men's Fashion, Bags, and Accessories. Everyday fits for every occasion.",
   phone: "0702947981",
   whatsappPhone: "254702947981",
   email: "info@momentsnairobi.co.ke",
-  address: "Twilight Suites, 4th Floor, Shop 08, Tom Mboya Street",
+  address: "Twilight Suites, 4th Floor, Shop F4-08, Tom Mboya Street",
   addressDetail: "Opposite Eastmart Supermarket, near the Fire Station",
   city: "Nairobi",
   country: "Kenya",

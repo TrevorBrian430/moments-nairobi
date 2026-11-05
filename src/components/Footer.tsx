@@ -1,11 +1,9 @@
-"use client";
-
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
-import { STORE_INFO } from "@/lib/constants";
+import { STORE_INFO, STORE_HOURS } from "@/lib/constants";
 
-const QUICK_LINKS = [
+const SHOP_LINKS = [
   { label: "Shop All", href: "/shop" },
   { label: "Backpacks", href: "/shop?category=backpacks" },
   { label: "Crossbody Bags", href: "/shop?category=crossbody-bags" },
@@ -18,70 +16,52 @@ export default function Footer() {
   const currentYear = 2026;
 
   return (
-    <footer className="w-full max-w-full overflow-hidden bg-gray-900 text-gray-300">
-      {/* ====== Main grid ====== */}
-      <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          {/* — Brand column — */}
-          <div className="sm:col-span-2 lg:col-span-1 space-y-4">
-            <Link href="/" className="inline-block">
+    <footer className="w-full bg-[#111111] text-[#E4E0D8] border-t border-[#111111]">
+      {/* Main 4-column grid */}
+      <div className="mx-auto max-w-[1280px] px-4 py-14 sm:py-16 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Column 1: Reversed Logo & Factual Sentence */}
+          <div className="space-y-4">
+            <Link
+              href="/"
+              className="inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
+              aria-label="Moments Nairobi home"
+            >
               <Image
-                src="/images/logo.png"
+                src="/brand/logo-full-white.svg"
                 alt="Moments Nairobi"
-                width={120}
-                height={40}
-                className="h-10 w-auto object-contain brightness-200"
+                width={140}
+                height={38}
+                className="h-7 w-auto object-contain"
               />
             </Link>
-            <p className="text-lg font-semibold text-white tracking-wide">
-              Own Your Moment
+            <p className="text-sm leading-relaxed text-[#6B6B66] max-w-xs">
+              Curated men&apos;s bags, backpacks, clothing, and accessories based in
+              Nairobi CBD with nationwide delivery.
             </p>
-            <p className="text-sm leading-relaxed text-gray-400 max-w-xs">
-              Premium men&apos;s fashion curated for the modern Nairobi
-              gentleman. Quality bags, clothing, and accessories delivered to
-              your doorstep.
-            </p>
-
-            {/* Social links */}
-            <div className="flex items-center gap-4 pt-2">
+            <div className="pt-2">
               <a
                 href={STORE_INFO.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="rounded-full bg-gray-800 p-2.5 text-gray-400 hover:bg-[#B85C6E] hover:text-white transition-colors"
+                className="text-xs text-[#E4E0D8] hover:text-[#BB4C6C] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
               >
-                <svg
-                  className="h-4 w-4 fill-current"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                </svg>
-              </a>
-              <a
-                href="https://wa.me/254702947981"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="WhatsApp"
-                className="rounded-full bg-gray-800 p-2.5 text-gray-400 hover:bg-green-600 hover:text-white transition-colors"
-              >
-                <MessageCircle className="h-4 w-4" />
+                Instagram: @momentsnairobi
               </a>
             </div>
           </div>
 
-          {/* — Quick Links column — */}
+          {/* Column 2: Shop Links */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
-              Quick Links
-            </h3>
-            <ul className="space-y-3">
-              {QUICK_LINKS.map((link) => (
+            <h2 className="text-[11px] uppercase tracking-[0.12em] font-medium text-[#6B6B66] mb-4">
+              Shop
+            </h2>
+            <ul className="space-y-2.5">
+              {SHOP_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                    className="text-sm text-[#E4E0D8] hover:text-white transition-colors duration-200 py-1 inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
                   >
                     {link.label}
                   </Link>
@@ -90,94 +70,62 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* — Contact column — */}
+          {/* Column 3: Contact */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
-              Contact Us
-            </h3>
-            <ul className="space-y-4">
+            <h2 className="text-[11px] uppercase tracking-[0.12em] font-medium text-[#6B6B66] mb-4">
+              Contact
+            </h2>
+            <ul className="space-y-2.5 text-sm text-[#E4E0D8]">
               <li>
                 <a
-                  href="tel:+254702947981"
-                  className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors"
+                  href={`tel:+254${STORE_INFO.phone.replace(/^0/, "")}`}
+                  className="hover:text-white transition-colors py-1 inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
                 >
-                  <Phone className="mt-0.5 h-4 w-4 shrink-0 text-[#B85C6E]" />
-                  0702 947 981
+                  Phone: 0702 947 981
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:info@momentsnairobi.co.ke"
-                  className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors"
+                  href={`mailto:${STORE_INFO.email}`}
+                  className="hover:text-white transition-colors py-1 inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
                 >
-                  <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[#B85C6E]" />
-                  info@momentsnairobi.co.ke
+                  {STORE_INFO.email}
                 </a>
               </li>
-              <li className="flex items-start gap-3 text-sm text-gray-400">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#B85C6E]" />
-                <span>
-                  Twilight Suites, 4th Floor,
-                  <br />
-                  Shop 08, Tom Mboya Street
-                </span>
+              <li className="pt-1 text-[#6B6B66] leading-relaxed">
+                Twilight Suites, 4th Floor, Shop F4-08<br />
+                Tom Mboya Street, Nairobi CBD
               </li>
             </ul>
           </div>
 
-          {/* — Newsletter / info column — */}
+          {/* Column 4: Store Hours (From ONE shared constant) */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
-              Twilight Suites Flagship
-            </h3>
-            <ul className="space-y-2.5 text-xs text-gray-400">
-              <li>
-                <strong className="text-white block">Operating Hours:</strong>
-                Mon &ndash; Sat: 8:30 AM &ndash; 7:30 PM<br />
-                Sunday: 11:00 AM &ndash; 5:00 PM
-              </li>
-              <li className="pt-1">
-                <strong className="text-white block">CBD Free Pickup:</strong>
-                Order online &amp; collect in 1 hour at F4-08
-              </li>
-              <li className="pt-1">
-                <strong className="text-white block">Countrywide Courier:</strong>
-                Daily dispatch to Mombasa, Kisumu, Nakuru, Eldoret &amp; Kenya wide
+            <h2 className="text-[11px] uppercase tracking-[0.12em] font-medium text-[#6B6B66] mb-4">
+              Store Hours
+            </h2>
+            <ul className="space-y-2 text-sm text-[#E4E0D8]">
+              <li>{STORE_HOURS.weekdays}</li>
+              <li>{STORE_HOURS.saturday}</li>
+              <li className="text-[#6B6B66]">{STORE_HOURS.sunday}</li>
+              <li className="pt-3 text-xs text-[#6B6B66] leading-relaxed border-t border-white/10 mt-3">
+                Free pickup at Twilight Suites F4-08. Same-day dispatch across Kenya.
               </li>
             </ul>
           </div>
         </div>
       </div>
 
-      {/* Giant Editorial Brand Typography (Inspired by ELLA / Unlimited) */}
-      <div className="border-t border-white/5 py-8 overflow-hidden select-none bg-black/40">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <span className="font-heading font-black text-5xl sm:text-7xl md:text-9xl tracking-tighter text-white/10 uppercase block hover:text-white/20 transition-colors">
-            MOMENTS
-          </span>
-        </div>
-      </div>
-
-      {/* ====== Bottom bar ====== */}
-      <div className="border-t border-gray-800 bg-gray-950">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row lg:px-8">
-          <p className="text-xs text-gray-500">
-            &copy; {currentYear} Moments Nairobi &bull; Twilight Suites F4-08 &bull; All rights reserved.
+      {/* Bottom bar */}
+      <div className="border-t border-white/10 bg-[#111111]">
+        <div className="mx-auto flex max-w-[1280px] flex-col items-center justify-between gap-3 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
+          <p className="text-xs text-[#6B6B66]">
+            &copy; {currentYear} Moments Nairobi. Twilight Suites F4-08. All rights reserved.
           </p>
-
-          {/* Payment methods */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-950/80 px-2.5 py-1 text-xs font-bold text-green-400 ring-1 ring-green-600/40">
-              <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-              Lipa na M-Pesa
-            </span>
-            <span className="inline-flex items-center rounded-lg bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-300 ring-1 ring-white/10">
-              Cash on CBD Delivery
-            </span>
-            <span className="inline-flex items-center rounded-lg bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-300 ring-1 ring-white/10">
-              Card / Visa / MC
-            </span>
-          </div>
+          {/* One plain text line instead of pills */}
+          <p className="text-xs text-[#6B6B66]">
+            M-Pesa and card accepted
+          </p>
         </div>
       </div>
     </footer>

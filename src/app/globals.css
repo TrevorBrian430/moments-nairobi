@@ -1,80 +1,89 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #B85C6E;
-  --color-brand-dark: #9A4A5A;
-  --color-brand-light: #D4899A;
-  --color-surface: #FAFAFA;
-  --color-surface-dark: #0A0A0A;
-  --color-surface-mid: #F5F0EB;
-  --color-gold: #C9A96E;
-  --color-gold-dark: #A8894E;
-  --color-whatsapp: #25D366;
-  --color-mpesa: #4CAF50;
-  --color-danger: #E53935;
-  --color-muted: #6B7280;
+  --color-background: #F6F4F0;
+  --color-surface: #FFFFFF;
+  --color-ink: #111111;
+  --color-muted: #6B6B66;
+  --color-hairline: #E4E0D8;
+  --color-accent: #BB4C6C;
+  --color-accent-dark: #9A3E58;
+  --color-accent-light: #CF6885;
+  --color-whatsapp: #1FA855;
+  --color-whatsapp-hover: #198e47;
 
-  --font-heading: var(--font-heading), "Plus Jakarta Sans", system-ui, sans-serif;
+  /* Backward-compatible brand alias */
+  --color-brand: #BB4C6C;
+  --color-brand-dark: #9A3E58;
+  --color-brand-light: #CF6885;
+
+  --font-heading: var(--font-heading), "Inter Tight", system-ui, sans-serif;
   --font-body: var(--font-body), "Inter", system-ui, sans-serif;
+
+  /* Strict 2px radius everywhere (9999px only on cart badge) */
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
+}
+
+:root {
+  --bg-primary: #F6F4F0;
+  --bg-surface: #FFFFFF;
+  --text-ink: #111111;
+  --text-muted: #6B6B66;
+  --border-hairline: #E4E0D8;
+  --accent: #BB4C6C;
+  --whatsapp: #1FA855;
 }
 
 @layer base {
   * {
-    @apply border-gray-200;
+    border-color: #E4E0D8;
     box-sizing: border-box;
   }
   html {
     max-width: 100%;
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
+    background-color: #F6F4F0;
   }
   body {
-    @apply bg-white text-gray-900 antialiased;
+    background-color: #F6F4F0;
+    color: #111111;
     font-family: var(--font-body);
+    font-weight: 400;
     max-width: 100%;
     overflow-x: hidden;
     position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    letter-spacing: -0.025em;
+    font-weight: 500;
+    letter-spacing: normal;
+    color: #111111;
+  }
+
+  /* Accessible visible focus rings */
+  :focus-visible {
+    outline: 2px solid #BB4C6C;
+    outline-offset: 2px;
   }
 }
 
-/* Fade-in animation for hero */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes marquee {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-/* Custom scrollbar & animations */
+/* 200ms ease-out motion only */
 @layer utilities {
-  .animate-fade-in {
-    animation: fade-in 0.8s ease-out both;
+  .transition-standard {
+    transition-property: opacity, transform, background-color, border-color, color;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
   }
-  .animate-marquee {
-    display: flex;
-    width: max-content;
-    animation: marquee 30s linear infinite;
-  }
-  .animate-marquee:hover {
-    animation-play-state: paused;
-  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -82,4 +91,12 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* Next.js dev indicator suppression for clean screenshots */
+nextjs-portal,
+[data-nextjs-dev-tools-button],
+[data-next-dev-tools],
+div[data-nextjs-toast-wrapper] {
+  display: none !important;
 }

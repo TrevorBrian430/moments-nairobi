@@ -1,17 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { Inter_Tight, Inter } from "next/font/google";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
+const interTight = Inter_Tight({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["500", "600"],
   variable: "--font-heading",
   display: "swap",
 });
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500"],
   variable: "--font-body",
   display: "swap",
 });
@@ -25,21 +25,21 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://momentsnairobi.co.ke"),
-  title: "Moments Nairobi | Men's Fashion • Bags • Accessories",
+  title: "Moments Nairobi | Men's Fashion, Bags & Accessories",
   description:
-    "Everyday fits. Every occasion. Shop premium men's bags, backpacks, clothing & accessories. Located at Tom Mboya St, Nairobi. Delivery countrywide.",
+    "Curated men's bags, backpacks, clothing, and accessories in Nairobi CBD. Physical store at Twilight Suites F4-08. Nationwide delivery.",
   keywords: [
     "men's fashion nairobi",
     "bags nairobi",
     "backpacks kenya",
-    "goyard backpacks nairobi",
-    "men's accessories",
+    "men's accessories nairobi",
     "moments nairobi",
-    "designer bags nairobi",
+    "designer backpacks kenya",
+    "travel bags nairobi",
   ],
   openGraph: {
-    title: "Moments Nairobi | Men's Fashion",
-    description: "Everyday fits. Every occasion. Own Your Moment.",
+    title: "Moments Nairobi | Men's Fashion & Bags",
+    description: "Curated men's fashion, premium bags, and accessories in Nairobi CBD.",
     type: "website",
     url: "https://momentsnairobi.co.ke",
     siteName: "Moments Nairobi",
@@ -52,8 +52,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${inter.variable}`}>
-      <body className="font-sans antialiased text-gray-900 bg-white selection:bg-[#B85C6E] selection:text-white">
+    <html lang="en" className={`${interTight.variable} ${inter.variable}`}>
+      <body className="font-sans antialiased text-[#111111] bg-[#F6F4F0] selection:bg-[#BB4C6C] selection:text-white">
         {children}
       </body>
     </html>

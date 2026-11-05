@@ -1,18 +1,13 @@
 "use client";
 
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import {
-  Search,
-  ShoppingBag,
-  Menu,
-  X,
-  Phone,
-  MessageCircle,
-  MapPin,
-} from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Search, ShoppingBag, Menu, X, MapPin } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
+import { STORE_HOURS } from "@/lib/constants";
+import AnnouncementBar from "./AnnouncementBar";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -24,9 +19,95 @@ const NAV_LINKS = [
   { label: "Accessories", href: "/shop?category=accessories" },
 ] as const;
 
+function DesktopNavLinks() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const isLinkActive = (href: string) => {
+    if (href === "/shop") {
+      return pathname === "/shop" && !searchParams.get("category");
+    }
+    const [path, query] = href.split("?");
+    if (pathname !== path) return false;
+    if (!query) return true;
+    const cat = new URLSearchParams(query).get("category");
+    return searchParams.get("category") === cat;
+  };
+
+  return (
+    <nav className="hidden lg:flex items-center gap-8" aria-label="Main navigation">
+      {NAV_LINKS.map((link) => {
+        const active = isLinkActive(link.href);
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={cn(
+              "relative text-[13px] uppercase tracking-[0.08em] font-medium py-1 transition-colors duration-200 select-none",
+              active
+                ? "text-[#111111] font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1px] after:bg-[#BB4C6C]"
+                : "text-[#6B6B66] hover:text-[#111111]"
+            )}
+          >
+            {link.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function MobileNavLinks({ onNavigate }: { onNavigate: () => void }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const isLinkActive = (href: string) => {
+    if (href === "/shop") {
+      return pathname === "/shop" && !searchParams.get("category");
+    }
+    const [path, query] = href.split("?");
+    if (pathname !== path) return false;
+    if (!query) return true;
+    const cat = new URLSearchParams(query).get("category");
+    return searchParams.get("category") === cat;
+  };
+
+  return (
+    <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+      {NAV_LINKS.map((link) => {
+        const active = isLinkActive(link.href);
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center justify-between px-3 py-3 text-[13px] uppercase tracking-[0.08em] font-medium rounded-[2px] transition-colors duration-200",
+              active
+                ? "bg-[#F6F4F0] text-[#BB4C6C] font-semibold border-l-2 border-[#BB4C6C]"
+                : "text-[#111111] hover:bg-[#F6F4F0]"
+            )}
+          >
+            <span>{link.label}</span>
+          </Link>
+        );
+      })}
+
+      <div className="pt-4 mt-4 border-t border-[#E4E0D8]">
+        <Link
+          href="/admin"
+          onClick={onNavigate}
+          className="block px-3 py-2.5 text-xs font-medium text-[#6B6B66] hover:text-[#111111] hover:bg-[#F6F4F0] rounded-[2px] transition-colors"
+        >
+          Store Admin CMS
+        </Link>
+      </div>
+    </nav>
+  );
+}
+
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const rawItemCount = useCartStore((s) => s.totalItems());
@@ -36,14 +117,7 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
-  /* ---------- sticky shadow on scroll ---------- */
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  /* ---------- lock body scroll when drawer open ---------- */
+  /* Lock body scroll when drawer is open */
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
@@ -57,97 +131,87 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ====== Announcement bar ====== */}
-      <div className="w-full bg-gray-950 text-white text-[11px] sm:text-xs text-center py-2 px-3 tracking-wide border-b border-white/5 font-medium relative z-40 leading-normal">
-        <span className="inline-block">🚚 Free CBD Delivery</span>
-        <span className="inline-block mx-1.5 opacity-40">&bull;</span>
-        <span className="inline-block">Countrywide Shipping</span>
-        <span className="inline-block mx-1.5 opacity-40">&bull;</span>
-        <span className="inline-block">
-          Order via WhatsApp:{" "}
-          <a
-            href="https://wa.me/254702947981"
-            className="underline font-bold text-green-400 hover:text-green-300"
-          >
-            0702 947 981
-          </a>
-        </span>
-      </div>
+      <AnnouncementBar />
 
-      {/* ====== Main navbar ====== */}
-      <header
-        className={cn(
-          "sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b transition-all duration-300",
-          scrolled ? "shadow-md border-gray-200" : "border-gray-100"
-        )}
-      >
-        <div className="mx-auto flex h-16 sm:h-18 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
-          {/* — Mobile hamburger button — */}
+      <header className="sticky top-0 z-50 w-full bg-[#F6F4F0] border-b border-[#E4E0D8]">
+        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Mobile hamburger button */}
           <button
             type="button"
             aria-label="Open navigation menu"
-            className="lg:hidden p-2.5 -ml-2 text-gray-800 hover:text-[#B85C6E] transition-colors cursor-pointer touch-manipulation z-20 active:scale-95"
+            className="lg:hidden flex items-center justify-center min-h-[44px] min-w-[44px] -ml-2 text-[#111111] hover:text-[#BB4C6C] transition-colors cursor-pointer touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
             onClick={() => setMobileOpen(true)}
           >
-            <Menu className="h-6 w-6 pointer-events-none" />
+            <Menu className="h-5 w-5" />
           </button>
 
-          {/* — Logo — */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 py-1">
-            <Image
-              src="/images/logo.png"
-              alt="Moments Nairobi"
-              width={160}
-              height={50}
-              className="h-9 sm:h-11 w-auto object-contain"
-              priority
-            />
-          </Link>
+          {/* Logo (Full lockup desktop, mark only mobile) */}
+          <div className="flex items-center">
+            <Link
+              href="/"
+              className="flex items-center min-h-[44px] py-1 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
+            >
+              {/* Mobile mark only */}
+              <div className="lg:hidden flex items-center">
+                <Image
+                  src="/brand/logo-mark.svg"
+                  alt="Moments Nairobi"
+                  width={34}
+                  height={34}
+                  className="h-8 w-auto object-contain"
+                  priority
+                />
+              </div>
+              {/* Desktop full lockup */}
+              <div className="hidden lg:flex items-center">
+                <Image
+                  src="/brand/logo-full.svg"
+                  alt="Moments Nairobi"
+                  width={140}
+                  height={38}
+                  className="h-7 w-auto object-contain"
+                  priority
+                />
+              </div>
+            </Link>
+          </div>
 
-          {/* — Desktop nav links — */}
-          <nav className="hidden lg:flex items-center gap-7">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="relative text-xs uppercase font-bold tracking-wider text-gray-700 hover:text-[#B85C6E] transition-colors py-1"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          {/* Centered desktop nav */}
+          <Suspense
+            fallback={
+              <nav className="hidden lg:flex items-center gap-8">
+                {NAV_LINKS.map((link) => (
+                  <span
+                    key={link.href}
+                    className="text-[13px] uppercase tracking-[0.08em] font-medium text-[#6B6B66]"
+                  >
+                    {link.label}
+                  </span>
+                ))}
+              </nav>
+            }
+          >
+            <DesktopNavLinks />
+          </Suspense>
 
-          {/* — Right icons — */}
-          <div className="flex items-center gap-1 sm:gap-3">
-            {/* Search */}
+          {/* Right: Search and Cart (WhatsApp icon removed as per instructions) */}
+          <div className="flex items-center gap-1 sm:gap-2">
             <Link
               href="/search"
-              aria-label="Search"
-              className="p-2 text-gray-700 hover:text-[#B85C6E] transition-colors cursor-pointer touch-manipulation"
+              aria-label="Search collection"
+              className="flex items-center justify-center min-h-[44px] min-w-[44px] text-[#111111] hover:text-[#BB4C6C] transition-colors cursor-pointer touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
             >
               <Search className="h-5 w-5" />
             </Link>
 
-            {/* WhatsApp */}
-            <a
-              href="https://wa.me/254702947981"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Chat on WhatsApp"
-              className="p-2 text-gray-700 hover:text-green-600 transition-colors cursor-pointer touch-manipulation"
-            >
-              <MessageCircle className="h-5 w-5" />
-            </a>
-
-            {/* Cart */}
             <Link
               href="/cart"
-              aria-label="Shopping cart"
-              className="relative p-2 text-gray-800 hover:text-[#B85C6E] transition-colors cursor-pointer touch-manipulation"
+              aria-label={`Shopping cart with ${itemCount} items`}
+              className="relative flex items-center justify-center min-h-[44px] min-w-[44px] text-[#111111] hover:text-[#BB4C6C] transition-colors cursor-pointer touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
             >
               <ShoppingBag className="h-5 w-5" />
               {itemCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4.5 w-4.5 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-[#B85C6E] text-[10px] font-extrabold text-white shadow-sm pointer-events-none">
+                <span className="absolute top-1.5 right-1.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-[999px] bg-[#BB4C6C] text-[10px] font-semibold text-white pointer-events-none">
                   {itemCount > 99 ? "99+" : itemCount}
                 </span>
               )}
@@ -156,98 +220,74 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* ====== Mobile slide-in drawer ====== */}
-      {/* Backdrop */}
+      {/* Mobile Drawer Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm lg:hidden cursor-pointer"
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-xs transition-opacity duration-200 ease-out lg:hidden cursor-pointer"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Drawer panel */}
+      {/* Mobile Slide-in Drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-[70] w-80 max-w-[85vw] bg-white shadow-2xl transition-all duration-300 ease-in-out lg:hidden flex flex-col",
-          mobileOpen
-            ? "translate-x-0 pointer-events-auto visible"
-            : "-translate-x-full pointer-events-none invisible"
+          "fixed inset-y-0 left-0 z-[70] w-80 max-w-[85vw] bg-white h-full border-r border-[#E4E0D8] shadow-xl flex flex-col transition-transform duration-200 ease-out lg:hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Drawer header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-[#E4E0D8] px-5 py-4 bg-[#F6F4F0]">
           <Link
             href="/"
             onClick={() => setMobileOpen(false)}
             className="flex items-center"
           >
             <Image
-              src="/images/logo.png"
+              src="/brand/logo-full.svg"
               alt="Moments Nairobi"
-              width={140}
-              height={44}
-              className="h-8 w-auto object-contain"
+              width={130}
+              height={36}
+              className="h-7 w-auto object-contain"
             />
           </Link>
           <button
             type="button"
-            aria-label="Close menu"
-            className="p-2 -mr-2 text-gray-500 hover:text-gray-900 transition-colors cursor-pointer touch-manipulation"
+            aria-label="Close navigation menu"
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] -mr-2 text-[#111111] hover:text-[#BB4C6C] transition-colors cursor-pointer touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C]"
             onClick={() => setMobileOpen(false)}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Store location tag */}
-        <div className="px-5 pt-3 pb-2 text-[11px] text-gray-500 flex items-center gap-2 bg-gray-50 border-b border-gray-100">
-          <MapPin className="h-3.5 w-3.5 text-[#B85C6E] shrink-0" />
+        {/* Physical shop location banner */}
+        <div className="px-5 py-2.5 text-xs text-[#6B6B66] flex items-center gap-2 border-b border-[#E4E0D8]">
+          <MapPin className="h-3.5 w-3.5 text-[#BB4C6C] shrink-0" />
           <span className="truncate">Twilight Suites F4-08, Tom Mboya St</span>
         </div>
 
-        {/* Nav links */}
-        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50 hover:text-[#B85C6E] transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
+        {/* Mobile Navigation Links */}
+        <Suspense
+          fallback={
+            <div className="p-4 space-y-2">
+              {NAV_LINKS.map((link) => (
+                <div key={link.href} className="py-2 text-xs text-[#6B6B66]">
+                  {link.label}
+                </div>
+              ))}
+            </div>
+          }
+        >
+          <MobileNavLinks onNavigate={() => setMobileOpen(false)} />
+        </Suspense>
 
-          <div className="pt-4 border-t border-gray-100">
-            <Link
-              href="/admin"
-              onClick={() => setMobileOpen(false)}
-              className="block rounded-xl px-4 py-3 text-xs font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-            >
-              Store Admin CMS &bull; Twilight Suites
-            </Link>
-          </div>
-        </nav>
-
-        {/* Drawer footer */}
-        <div className="border-t border-gray-100 p-4 space-y-2.5 bg-gray-50/70">
-          <a
-            href="https://wa.me/254702947981"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2.5 w-full bg-[#25D366] text-white py-3 rounded-full text-xs font-bold shadow-md hover:bg-[#20bd59] transition-colors"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>Chat on WhatsApp (0702 947 981)</span>
-          </a>
-          <a
-            href="tel:+254702947981"
-            className="flex items-center justify-center gap-2 w-full border border-gray-200 bg-white text-gray-800 py-2.5 rounded-full text-xs font-bold hover:bg-gray-50 transition-colors"
-          >
-            <Phone className="h-4 w-4 text-[#B85C6E]" />
-            <span>Call 0702 947 981</span>
-          </a>
+        {/* Drawer footer with store hours */}
+        <div className="border-t border-[#E4E0D8] p-5 space-y-2 bg-[#F6F4F0] text-xs text-[#6B6B66]">
+          <p className="font-medium text-[#111111]">Store Hours</p>
+          <p>{STORE_HOURS.weekdays}</p>
+          <p>{STORE_HOURS.saturday}</p>
+          <p>{STORE_HOURS.sunday}</p>
         </div>
       </aside>
     </>
