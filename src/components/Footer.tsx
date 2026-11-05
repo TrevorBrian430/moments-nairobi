@@ -18,7 +18,7 @@ export default function Footer() {
   const currentYear = 2026;
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
+    <footer className="w-full max-w-full overflow-hidden bg-gray-900 text-gray-300">
       {/* ====== Main grid ====== */}
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">

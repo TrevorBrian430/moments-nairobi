@@ -68,7 +68,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-8">
       <div className="flex items-center gap-4 mb-8">
         <Link href="/shop" className="text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowLeft className="w-5 h-5" />
@@ -168,53 +168,67 @@ function CartItemRow({
   onRemove: () => void;
 }) {
   return (
-    <div className="flex gap-4 bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-      <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+    <div className="flex gap-3 sm:gap-4 bg-white border border-gray-100 rounded-2xl p-3 sm:p-4 shadow-sm w-full">
+      {/* Left thumbnail */}
+      <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-neutral-100 border border-gray-100">
         <Image
           src={item.image}
           alt={item.name}
           fill
           className="object-cover"
-          sizes="96px"
+          sizes="(max-width: 640px) 80px, 96px"
         />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-gray-900 truncate">{item.name}</h4>
-        <div className="text-sm text-gray-500 mt-0.5">
-          {item.color && <span>{item.color}</span>}
-          {item.color && item.size && <span> • </span>}
-          {item.size && <span>Size {item.size}</span>}
+      {/* Right content */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-snug truncate">
+              {item.name}
+            </h4>
+            <div className="text-xs text-gray-500 mt-0.5">
+              {item.color && <span className="font-medium text-gray-700">{item.color}</span>}
+              {item.color && item.size && <span> &bull; </span>}
+              {item.size && <span>Size {item.size}</span>}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label="Remove item"
+            className="text-gray-400 hover:text-red-600 transition-colors p-1.5 -mr-1 shrink-0 cursor-pointer touch-manipulation active:scale-90"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
-        <p className="font-bold text-gray-900 mt-1">
-          {formatPrice(item.price)}
-        </p>
-      </div>
 
-      <div className="flex flex-col items-end justify-between">
-        <button
-          onClick={onRemove}
-          className="text-gray-400 hover:text-danger transition-colors p-1"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-gray-50">
+          <p className="font-extrabold text-gray-900 text-sm sm:text-base">
+            {formatPrice(item.price)}
+          </p>
 
-        <div className="flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1">
-          <button
-            onClick={() => onUpdateQuantity(item.quantity - 1)}
-            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
-          >
-            <Minus className="w-3.5 h-3.5" />
-          </button>
-          <span className="text-sm font-semibold w-6 text-center">
-            {item.quantity}
-          </span>
-          <button
-            onClick={() => onUpdateQuantity(item.quantity + 1)}
-            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center border border-gray-200 bg-gray-50 rounded-full px-2 py-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => onUpdateQuantity(item.quantity - 1)}
+              className="w-6 h-6 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer touch-manipulation active:scale-90"
+              aria-label="Decrease quantity"
+            >
+              <Minus className="w-3 h-3 pointer-events-none" />
+            </button>
+            <span className="text-xs sm:text-sm font-bold w-6 text-center select-none text-gray-900">
+              {item.quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => onUpdateQuantity(item.quantity + 1)}
+              className="w-6 h-6 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer touch-manipulation active:scale-90"
+              aria-label="Increase quantity"
+            >
+              <Plus className="w-3 h-3 pointer-events-none" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

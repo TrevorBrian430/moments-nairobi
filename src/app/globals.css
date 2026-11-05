@@ -21,10 +21,19 @@
 @layer base {
   * {
     @apply border-gray-200;
+    box-sizing: border-box;
+  }
+  html {
+    max-width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
   }
   body {
     @apply bg-white text-gray-900 antialiased;
     font-family: var(--font-body);
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);

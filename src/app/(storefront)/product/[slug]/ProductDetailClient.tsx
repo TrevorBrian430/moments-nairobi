@@ -110,7 +110,7 @@ export default function ProductDetailClient({
   const whatsappUrl = generateWhatsAppLink(STORE_INFO.whatsappPhone, whatsappMessage);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 overflow-x-hidden">
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 text-xs text-gray-500 mb-6 overflow-x-auto">
         <Link href="/" className="hover:text-gray-900 transition-colors">

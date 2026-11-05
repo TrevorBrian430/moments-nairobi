@@ -58,14 +58,20 @@ export default function Navbar() {
   return (
     <>
       {/* ====== Announcement bar ====== */}
-      <div className="bg-gray-950 text-white text-[11px] sm:text-xs text-center py-2 px-3 tracking-wide border-b border-white/5 font-medium relative z-40">
-        🚚 Free CBD Delivery &bull; Countrywide Shipping &bull; Order via WhatsApp:{" "}
-        <a
-          href="https://wa.me/254702947981"
-          className="underline font-bold text-green-400 hover:text-green-300"
-        >
-          0702 947 981
-        </a>
+      <div className="w-full bg-gray-950 text-white text-[11px] sm:text-xs text-center py-2 px-3 tracking-wide border-b border-white/5 font-medium relative z-40 leading-normal">
+        <span className="inline-block">🚚 Free CBD Delivery</span>
+        <span className="inline-block mx-1.5 opacity-40">&bull;</span>
+        <span className="inline-block">Countrywide Shipping</span>
+        <span className="inline-block mx-1.5 opacity-40">&bull;</span>
+        <span className="inline-block">
+          Order via WhatsApp:{" "}
+          <a
+            href="https://wa.me/254702947981"
+            className="underline font-bold text-green-400 hover:text-green-300"
+          >
+            0702 947 981
+          </a>
+        </span>
       </div>
 
       {/* ====== Main navbar ====== */}

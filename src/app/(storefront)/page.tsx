@@ -18,7 +18,7 @@ import {
 
 export default function HomePage() {
   return (
-    <div className="space-y-10 sm:space-y-16">
+    <div className="space-y-10 sm:space-y-16 w-full max-w-full overflow-x-hidden">
       {/* 1. Hero banner */}
       <Hero />
 

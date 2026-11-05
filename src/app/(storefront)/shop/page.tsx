@@ -48,7 +48,7 @@ function ShopContent() {
   const currentCategoryInfo = CATEGORIES.find((c) => c.slug === selectedCategory);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12 overflow-x-hidden">
       {/* Header section */}
       <div className="border-b border-gray-100 pb-8 mb-8">
         <h1 className="font-heading text-3xl sm:text-4xl font-bold text-gray-900 capitalize">
