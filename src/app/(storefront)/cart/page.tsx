@@ -69,14 +69,38 @@ export default function CartPage() {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-8">
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4 mb-6">
         <Link href="/shop" className="text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="font-heading text-3xl font-bold text-gray-900">
+        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-gray-900">
           Your Cart
         </h1>
-        <span className="text-gray-500">({items.length} items)</span>
+        <span className="text-gray-500 text-sm">({items.length} items)</span>
+      </div>
+
+      {/* Gamified Free Countrywide Delivery Progress Bar */}
+      <div className="mb-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4">
+        <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-gray-900 mb-2">
+          {totalPrice() >= 7000 ? (
+            <span className="text-green-700 flex items-center gap-1.5 font-extrabold">
+              <span>🎉</span> You unlocked FREE Countrywide Delivery anywhere in Kenya!
+            </span>
+          ) : (
+            <span className="text-gray-800">
+              🚚 Add <strong className="text-[#B85C6E]">{formatPrice(7000 - totalPrice())}</strong> more for Free Countrywide Delivery
+            </span>
+          )}
+          <span className="text-xs font-mono font-extrabold text-gray-500">
+            {Math.min(100, Math.round((totalPrice() / 7000) * 100))}%
+          </span>
+        </div>
+        <div className="h-2 w-full bg-amber-200/50 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-amber-500 via-[#B85C6E] to-green-500 rounded-full transition-all duration-500"
+            style={{ width: `${Math.min(100, Math.round((totalPrice() / 7000) * 100))}%` }}
+          />
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">

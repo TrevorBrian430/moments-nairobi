@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,10 @@ import {
   ChevronRight,
   Minus,
   Plus,
+  Flame,
+  Clock,
+  HelpCircle,
+  Sparkles,
 } from "lucide-react";
 import { type Product, STORE_INFO } from "@/lib/constants";
 import { formatPrice, generateWhatsAppLink, cn } from "@/lib/utils";
@@ -43,6 +47,29 @@ export default function ProductDetailClient({
   );
   const [quantity, setQuantity] = useState<number>(1);
   const [added, setAdded] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<"desc" | "specs" | "delivery" | "faq">("desc");
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({ hours: 8, minutes: 42, seconds: 19 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        return { hours: 12, minutes: 0, seconds: 0 };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyBar(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const displayPrice = product.salePrice ?? product.price;
 
@@ -226,6 +253,40 @@ export default function ProductDetailClient({
             </div>
           </div>
 
+          {/* ELLA-inspired Urgency Countdown & Scarcity Box */}
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-3 sm:p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                <Flame className="h-4 w-4 text-[#B85C6E] animate-pulse" />
+                <span>LIMITED TIME DROP</span>
+              </div>
+              <div className="flex items-center gap-1 font-mono text-[11px] font-extrabold text-gray-900">
+                <span className="bg-white px-1.5 py-0.5 rounded shadow-xs border border-amber-200">
+                  {String(timeLeft.hours).padStart(2, "0")}h
+                </span>
+                <span>:</span>
+                <span className="bg-white px-1.5 py-0.5 rounded shadow-xs border border-amber-200">
+                  {String(timeLeft.minutes).padStart(2, "0")}m
+                </span>
+                <span>:</span>
+                <span className="bg-white px-1.5 py-0.5 rounded shadow-xs border border-amber-200 text-[#B85C6E]">
+                  {String(timeLeft.seconds).padStart(2, "0")}s
+                </span>
+              </div>
+            </div>
+
+            {/* Inventory progress meter */}
+            <div>
+              <div className="flex justify-between text-[11px] font-semibold text-gray-700 mb-1">
+                <span>Only <strong className="text-[#B85C6E]">3 items left</strong> in shop</span>
+                <span className="text-gray-500">14 people viewing</span>
+              </div>
+              <div className="h-1.5 w-full bg-amber-200/60 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-amber-500 to-[#B85C6E] rounded-full w-[78%]" />
+              </div>
+            </div>
+          </div>
+
           {/* Color selector — optimized for mobile tap */}
           {product.colors && product.colors.length > 0 && (
             <div className="space-y-2">
@@ -406,6 +467,136 @@ export default function ProductDetailClient({
         </div>
       </div>
 
+      {/* ELLA-inspired Tabbed Specifications */}
+      <section className="mt-12 sm:mt-16 border-t border-gray-100 pt-8">
+        <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide gap-4 sm:gap-8 text-xs sm:text-sm font-bold uppercase tracking-wider">
+          <button
+            type="button"
+            onClick={() => setActiveTab("desc")}
+            className={cn(
+              "pb-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer touch-manipulation",
+              activeTab === "desc"
+                ? "border-gray-900 text-gray-900"
+                : "border-transparent text-gray-400 hover:text-gray-700"
+            )}
+          >
+            Description & Details
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("specs")}
+            className={cn(
+              "pb-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer touch-manipulation",
+              activeTab === "specs"
+                ? "border-gray-900 text-gray-900"
+                : "border-transparent text-gray-400 hover:text-gray-700"
+            )}
+          >
+            Materials & Fit
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("delivery")}
+            className={cn(
+              "pb-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer touch-manipulation",
+              activeTab === "delivery"
+                ? "border-gray-900 text-gray-900"
+                : "border-transparent text-gray-400 hover:text-gray-700"
+            )}
+          >
+            CBD Pickup & Courier
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("faq")}
+            className={cn(
+              "pb-3.5 border-b-2 transition-all whitespace-nowrap cursor-pointer touch-manipulation",
+              activeTab === "faq"
+                ? "border-gray-900 text-gray-900"
+                : "border-transparent text-gray-400 hover:text-gray-700"
+            )}
+          >
+            WhatsApp Order FAQ
+          </button>
+        </div>
+
+        <div className="py-6 text-xs sm:text-sm text-gray-600 leading-relaxed max-w-4xl">
+          {activeTab === "desc" && (
+            <div className="space-y-4">
+              <p className="font-medium text-gray-900">{product.description}</p>
+              <p>
+                Every piece in our collection is handpicked to combine statement urban luxury with everyday practicality. Built with heavy-duty zips, water-resistant canvas, and reinforced straps engineered for Nairobi commuting, campus life, and weekend outings.
+              </p>
+              {product.features && (
+                <div className="grid sm:grid-cols-2 gap-2 pt-2">
+                  {product.features.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#B85C6E]" />
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "specs" && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-2xl">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-gray-400 block">Material</span>
+                  <span className="font-semibold text-gray-900">Heavy-Duty Coated Canvas / Leather Trim</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-gray-400 block">Hardware</span>
+                  <span className="font-semibold text-gray-900">Reinforced Gunmetal Zippers</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-gray-400 block">Capacity</span>
+                  <span className="font-semibold text-gray-900">Fits 15-Inch Laptop + Daily Gear</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-gray-400 block">Origin</span>
+                  <span className="font-semibold text-gray-900">Curated & Tested in Nairobi</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "delivery" && (
+            <div className="space-y-3 bg-gray-50/70 p-4 rounded-2xl border border-gray-100">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-4 w-4 text-[#B85C6E] shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-gray-900">Free In-Store CBD Pickup:</strong>
+                  <p className="mt-0.5">Collect at Twilight Suites, 4th Floor, Shop F4-08, Tom Mboya Street (Opposite Eastmart Supermarket). Open Mon–Sat: 8:30 AM – 7:30 PM.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 pt-2 border-t border-gray-200/50">
+                <Truck className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-gray-900">Countrywide Courier Dispatch:</strong>
+                  <p className="mt-0.5">Dispatched daily to Mombasa, Nakuru, Kisumu, Eldoret, Thika, Machakos & across Kenya (KES 300 - 500, delivery within 24 hours).</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "faq" && (
+            <div className="space-y-3">
+              <div className="border border-gray-100 rounded-xl p-3 bg-white">
+                <h4 className="font-bold text-gray-900 text-xs sm:text-sm">How do I order via WhatsApp?</h4>
+                <p className="mt-1 text-xs text-gray-600">Click the green &ldquo;Order via WhatsApp&rdquo; button. Your selected color, size, and quantity are automatically formatted into a message. Send it to us, confirm your delivery address, and we arrange dispatch right away!</p>
+              </div>
+              <div className="border border-gray-100 rounded-xl p-3 bg-white">
+                <h4 className="font-bold text-gray-900 text-xs sm:text-sm">What payment methods do you accept?</h4>
+                <p className="mt-1 text-xs text-gray-600">We accept Lipa na M-Pesa (Till / Send Money), Cash on Delivery within Nairobi CBD, and Card payments at checkout.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Related Products */}
       {relatedProducts.length > 0 && (
         <section className="mt-12 sm:mt-20 border-t border-gray-100 pt-10">
@@ -426,6 +617,60 @@ export default function ProductDetailClient({
             ))}
           </div>
         </section>
+      )}
+
+      {/* Sticky Mobile Bottom Quick-Purchase Bar */}
+      {showStickyBar && (
+        <aside
+          aria-label="Quick order options"
+          className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-2.5 shadow-2xl lg:hidden flex items-center justify-between gap-3 animate-fade-in"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative h-11 w-11 rounded-lg overflow-hidden shrink-0 border border-gray-200 bg-neutral-100">
+              <Image
+                src={selectedImage}
+                alt={product.name}
+                fill
+                className="object-cover"
+                sizes="44px"
+              />
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-xs text-gray-900 truncate">
+                {product.name}
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px]">
+                <span className="font-extrabold text-[#B85C6E]">
+                  {formatPrice(displayPrice)}
+                </span>
+                {selectedColor && (
+                  <span className="text-gray-400 truncate">
+                    &bull; {selectedColor}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Order on WhatsApp"
+              className="p-2.5 rounded-full bg-[#25D366] text-white shadow-md active:scale-95 transition-transform"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </a>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="bg-gray-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-md active:scale-95 transition-transform whitespace-nowrap"
+            >
+              {added ? "Added!" : "Add to Cart"}
+            </button>
+          </div>
+        </aside>
       )}
     </div>
   );

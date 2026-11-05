@@ -5,6 +5,9 @@ import CategoryCircles from "@/components/CategoryCircles";
 import ProductGrid from "@/components/ProductGrid";
 import PromoBar from "@/components/PromoBar";
 import Testimonials from "@/components/Testimonials";
+import MarqueeBanner from "@/components/MarqueeBanner";
+import EditorialStory from "@/components/EditorialStory";
+import InstagramFeed from "@/components/InstagramFeed";
 import { PRODUCTS, STORE_INFO } from "@/lib/constants";
 import {
   Truck,
@@ -77,7 +80,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. Instagram Story style Category Circles */}
+      {/* 3. High-Fashion Marquee Ticker */}
+      <MarqueeBanner variant="dark" />
+
+      {/* 4. Instagram Story style Category Circles */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
           <div>
@@ -99,88 +105,8 @@ export default function HomePage() {
         <CategoryCircles />
       </section>
 
-      {/* 4. Popular Category Hero Cards */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-          {/* Card 1: Luxury Backpacks */}
-          <Link
-            href="/shop?category=backpacks"
-            className="group relative h-48 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-          >
-            <Image
-              src="/images/bagpack 1.jpg"
-              alt="Backpacks"
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
-              sizes="(max-width: 768px) 100vw, 33vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-            <div className="absolute bottom-4 left-4 right-4 text-white">
-              <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-amber-400">
-                Laptops • Work • Campus
-              </span>
-              <h3 className="font-heading text-base sm:text-xl font-bold text-white mt-0.5">
-                Designer Backpacks
-              </h3>
-              <p className="text-xs text-gray-300 mt-0.5 line-clamp-1">
-                Spacious luxury fits starting KES 4,000
-              </p>
-            </div>
-          </Link>
-
-          {/* Card 2: Crossbody Bags */}
-          <Link
-            href="/shop?category=crossbody-bags"
-            className="group relative h-48 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-          >
-            <Image
-              src="/images/crossbody-bag.jpg"
-              alt="Crossbody Bags"
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
-              sizes="(max-width: 768px) 100vw, 33vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-            <div className="absolute bottom-4 left-4 right-4 text-white">
-              <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-emerald-400">
-                Daily Essentials
-              </span>
-              <h3 className="font-heading text-base sm:text-xl font-bold text-white mt-0.5">
-                Crossbody Bags
-              </h3>
-              <p className="text-xs text-gray-300 mt-0.5 line-clamp-1">
-                Compact, versatile everyday carry — KES 2,700
-              </p>
-            </div>
-          </Link>
-
-          {/* Card 3: Streetwear Clothing */}
-          <Link
-            href="/shop?category=clothing"
-            className="group relative h-48 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-          >
-            <Image
-              src="/images/shacket-white.jpg"
-              alt="Streetwear Clothing"
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
-              sizes="(max-width: 768px) 100vw, 33vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-            <div className="absolute bottom-4 left-4 right-4 text-white">
-              <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-[#D4899A]">
-                Fresh Fits
-              </span>
-              <h3 className="font-heading text-base sm:text-xl font-bold text-white mt-0.5">
-                Streetwear &amp; Jeans
-              </h3>
-              <p className="text-xs text-gray-300 mt-0.5 line-clamp-1">
-                Wide leg denim, shackets &amp; graphic tees
-              </p>
-            </div>
-          </Link>
-        </div>
-      </section>
+      {/* 5. Editorial Lookbook & Spotlight Stories */}
+      <EditorialStory />
 
       {/* 5. Main Product Catalog Grid with filter tabs & sort */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -262,7 +188,10 @@ export default function HomePage() {
       {/* 8. Happy Clients / Testimonials */}
       <Testimonials />
 
-      {/* 9. Physical Store Location & Contact Banner */}
+      {/* 9. Live Instagram Street Style Community Grid */}
+      <InstagramFeed />
+
+      {/* 10. Physical Store Location & Contact Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gradient-to-br from-neutral-900 to-gray-900 rounded-3xl p-6 sm:p-12 text-white relative overflow-hidden shadow-xl">
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">

@@ -128,32 +128,55 @@ export default function Footer() {
           {/* — Newsletter / info column — */}
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
-              Why Shop With Us
+              Twilight Suites Flagship
             </h3>
-            <ul className="space-y-3 text-sm text-gray-400">
-              <li>✓ Free delivery in Nairobi CBD</li>
-              <li>✓ Countrywide shipping</li>
-              <li>✓ Quality guaranteed</li>
-              <li>✓ Easy M-Pesa payments</li>
-              <li>✓ Responsive customer support</li>
+            <ul className="space-y-2.5 text-xs text-gray-400">
+              <li>
+                <strong className="text-white block">Operating Hours:</strong>
+                Mon &ndash; Sat: 8:30 AM &ndash; 7:30 PM<br />
+                Sunday: 11:00 AM &ndash; 5:00 PM
+              </li>
+              <li className="pt-1">
+                <strong className="text-white block">CBD Free Pickup:</strong>
+                Order online &amp; collect in 1 hour at F4-08
+              </li>
+              <li className="pt-1">
+                <strong className="text-white block">Countrywide Courier:</strong>
+                Daily dispatch to Mombasa, Kisumu, Nakuru, Eldoret &amp; Kenya wide
+              </li>
             </ul>
           </div>
         </div>
       </div>
 
+      {/* Giant Editorial Brand Typography (Inspired by ELLA / Unlimited) */}
+      <div className="border-t border-white/5 py-8 overflow-hidden select-none bg-black/40">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <span className="font-heading font-black text-5xl sm:text-7xl md:text-9xl tracking-tighter text-white/10 uppercase block hover:text-white/20 transition-colors">
+            MOMENTS
+          </span>
+        </div>
+      </div>
+
       {/* ====== Bottom bar ====== */}
-      <div className="border-t border-gray-800">
+      <div className="border-t border-gray-800 bg-gray-950">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row lg:px-8">
           <p className="text-xs text-gray-500">
-            © {currentYear} Moments Nairobi. All rights reserved.
+            &copy; {currentYear} Moments Nairobi &bull; Twilight Suites F4-08 &bull; All rights reserved.
           </p>
 
           {/* Payment methods */}
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center rounded-md bg-green-800/40 px-3 py-1 text-xs font-semibold text-green-400 ring-1 ring-green-700/50">
-              M-Pesa
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-950/80 px-2.5 py-1 text-xs font-bold text-green-400 ring-1 ring-green-600/40">
+              <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+              Lipa na M-Pesa
             </span>
-            <span className="text-xs text-gray-500">Accepted</span>
+            <span className="inline-flex items-center rounded-lg bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-300 ring-1 ring-white/10">
+              Cash on CBD Delivery
+            </span>
+            <span className="inline-flex items-center rounded-lg bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-300 ring-1 ring-white/10">
+              Card / Visa / MC
+            </span>
           </div>
         </div>
       </div>
