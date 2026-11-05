@@ -11,11 +11,14 @@ export type CartItem = {
   color?: string;
   size?: string;
   quantity: number;
+  variantId?: string;
+  variantLabel?: string;
+  variantImage?: string;
 };
 
 type CartState = {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
   removeItem: (productId: string, color?: string, size?: string) => void;
   updateQuantity: (
     productId: string,
@@ -34,6 +37,7 @@ export const useCartStore = create<CartState>()(
       items: [],
 
       addItem: (item) => {
+        const addQty = item.quantity && item.quantity > 0 ? item.quantity : 1;
         set((state) => {
           const existing = state.items.find(
             (i) =>
@@ -48,13 +52,22 @@ export const useCartStore = create<CartState>()(
                 i.productId === item.productId &&
                 i.color === item.color &&
                 i.size === item.size
-                  ? { ...i, quantity: i.quantity + 1 }
+                  ? { ...i, quantity: i.quantity + addQty }
                   : i
               ),
             };
           }
 
-          return { items: [...state.items, { ...item, quantity: 1 }] };
+          return {
+            items: [
+              ...state.items,
+              {
+                ...item,
+                quantity: addQty,
+                image: item.variantImage || item.image,
+              },
+            ],
+          };
         });
       },
 

@@ -196,3 +196,74 @@ Generated clean, transparent-background SVG vectors directly from the original r
 - **`URL Param Helpers` (`src/lib/shop-params.ts`)**:
   - Synchronizes all filters and sort parameters into query strings (`?category=...&min=...&max=...&color=...&size=...&sort=...`).
   - Employs `router.replace(url, { scroll: false })` to eliminate history clutter and maintain scroll stability.
+
+
+# Part 5 Redesign Changes: Product Details Page (/product/[slug])
+
+## 1. Step 0 Data Audit: Field Availability & Missing Data Handling
+- **Existing Fields in Data (`Product` / `PRODUCTS`)**:
+  - `id`, `name`, `slug`, `category`, `price`, `salePrice` (optional), `description`, `images`, `colors` (name, hex, optional image), `sizes` (on select apparel), `inStock`, `stockCount` (optional), `isFeatured`, `isNew`.
+- **Missing Fields (Not Present in Data)**:
+  - `createdAt`: Not tracked on product data objects.
+  - `reviews` / `rating`: No review data, ratings, or feedback counts exist in data. Previously, a fake 5.0 rating and fake "48 reviews" were hardcoded in the client component.
+  - `material`: No structured material property exists (only mentioned sporadically in unstructured feature bullet points).
+  - `dimensions`: No dimension data exists on products.
+  - `laptopSize`: No structured laptop sizing property exists (only mentioned in unstructured feature bullets for backpacks).
+- **UI Hidden Due to Missing Data**:
+  - Removed the fake 5-star rating line and "48 reviews".
+  - Structured spec list in Details accordion only renders rows where data actually exists (color options, available sizes, laptop size if mentioned in features, closure/strap if mentioned). Missing dimension and material rows are skipped.
+  - Removed `aggregateRating` from Product JSON-LD schema (schema only includes valid brand, price, currency, availability, and description).
+- **TODO on Generic Product Names**:
+  - Catalog contains generic titles such as `"Designer Backpack"` (`designer-backpack`) and `"Everyday Backpack"`.
+  - **TODO**: In future catalog content updates, replace generic titles with descriptive, distinctive model names (e.g. *"Chevron Pattern Commuter Backpack"*, *"Monogram Embossed Laptop Backpack"*). Per instructions, existing data names were preserved.
+
+## 2. What Was Removed Entirely
+- **"Limited Time Drop" Scarcity Box**: Removed fake countdown timer (`hours:minutes:seconds`), fake "Only 3 items left in shop", fake "14 people viewing", and gradient inventory progress meter.
+- **Badges & Pills**: Removed "Popular in Nairobi" badge and "New Release" pill badge over product images.
+- **Fake Social Proof**: Removed 5-star rating line and "(48 reviews)".
+- **"Buy Now" Button**: Removed "Buy Now" to establish a single clear primary CTA ("Add to cart").
+- **Styling Anti-Patterns**: Removed tinted delivery box, rounded image frame (`rounded-2xl`, `rounded-3xl`), and rounded thumbnails (`rounded-xl`). Applied strict 2px radius (`rounded-[2px]`).
+- **"WhatsApp Order FAQ" Tab**: Removed redundant FAQ tab.
+- **Unsubstantiated Copy**: Removed unverified marketing claims ("water-resistant canvas", "heavy-duty zips", "reinforced straps", "Gunmetal Zippers") and duplicate bullets.
+- **Em Dashes (`—`)**: Removed all em dashes from page copy and metadata.
+- **Third-Party Brand Names**: Removed all mentions of third-party luxury brands (Louis Vuitton, Goyard) in customer-facing titles, alt text, descriptions, structured data, and WhatsApp order messages; replaced with neutral descriptors ("monogram print", "chevron print").
+
+## 3. Bugs Fixed
+- **Cart Thumbnail Bug**: When adding a variant (such as Brown Monogram), the cart could receive an incorrect image (e.g. the grey interior image). Fixed by adding `variantId`, `variantLabel`, and `variantImage` to `CartItem` and ensuring the add-to-cart payload assigns `image: selectedVariantImage || chosenImage`.
+- **Mobile Touch Interactivity**: Fixed non-clickable thumbnails and buttons on mobile by removing restrictive pointer-event locks and overflow cutoffs.
+- **Header Cart Badge Quantity Sync**: Ensured that adding multiple items immediately increments the cart badge by the total added item quantity (via Zustand `totalItems`).
+
+## 4. Components & Architecture Created
+- **`src/config/policies.ts`**:
+  - Central source of truth for store policies: Delivery ("Free in Nairobi CBD. Courier countrywide KES 300 to 500."), Pickup ("Twilight Suites, 4th Floor, Shop F4-08, Tom Mboya Street. Ready within 1 hour." with store hours), and Exchange ("48-hour exchange for size or color swap with tags attached and receipt.").
+- **`Gallery` (`src/components/product/Gallery.tsx`)**:
+  - Desktop: Vertical 64px thumbnail strip on the left (4:5 ratio, 2px radius, hairline border, selected ink border) and large 4:5 image on the right (`#EDEAE4` fallback background, 2px radius). Keyboard arrow navigation and preloading of the next image.
+  - Variant image switching: Selecting a color automatically jumps the gallery to that variant's image without breaking if no image is defined.
+  - Mobile: Full-width horizontal swipe carousel with scroll-snap, dot indicators, and mobile-only "1 / N" counter.
+- **`Lightbox` (`src/components/product/Lightbox.tsx`)**:
+  - Accessible fullscreen image modal with zoom in/out, Escape key dismissal, keyboard arrow navigation, and focus trap.
+- **`VariantSelector` (`src/components/product/VariantSelector.tsx`)**:
+  - Color swatches: 24px circles with visible ink selection rings, hover labels, and `aria-pressed` states. Out-of-stock variants disabled and crossed out.
+  - Size selector: 44px touch target buttons, rendered only if size data exists on the product.
+- **`QuantityStepper` (`src/components/product/QuantityStepper.tsx`)**:
+  - 44px height, 2px radius, hairline border with min 1 and max = stock count.
+- **`AddToCart` (`src/components/product/AddToCart.tsx`)**:
+  - 52px accent button (`#BB4C6C`). Shows inline "Added. View cart" state for 3 seconds on success. Disabled "Sold out" state when out of stock.
+- **`WhatsAppOrderButton` (`src/components/product/WhatsAppOrderButton.tsx`)**:
+  - 48px outlined `#1FA855` button. Prefilled message includes clean product name, selected color, quantity, total price, and page URL. Automatically changes to "Ask about restock" if item is out of stock.
+- **`InfoRows` (`src/components/product/InfoRows.tsx`)**:
+  - Hairline separated plain text rows for Delivery, Pickup, and Exchange sourced from `src/config/policies.ts`. No box, no icons.
+- **`DetailsAccordion` (`src/components/product/DetailsAccordion.tsx`)**:
+  - 200ms ease-out accordion with Details (description + 2-column real spec list), Materials and fit, Delivery and pickup (pickup address, store hours, and 3-step WhatsApp guide), and Exchange. First item open on desktop, all closed on mobile.
+- **`RelatedProducts` (`src/components/product/RelatedProducts.tsx`)**:
+  - "More in [category]" using shared `ProductCard`. Displays up to 4 distinct products in the same category excluding the current product and any product sharing the same primary image. Hidden completely if fewer than 2 qualify.
+- **`StickyMobileBar` (`src/components/product/StickyMobileBar.tsx`)**:
+  - 56px off-white bottom bar (`#F6F4F0`) with hairline top border, price, and Add to cart button. Appears on mobile via `IntersectionObserver` when the main Add to Cart button scrolls out of view.
+- **`ProductJsonLd` (`src/components/product/ProductJsonLd.tsx`)**:
+  - Valid schema.org `Product` structured data with clean brand ("Moments Nairobi"), KES currency, and stock availability.
+- **`ProductPage` (`src/app/(storefront)/product/[slug]/page.tsx`)**:
+  - Server-rendered page with dynamic metadata, canonical URL, and clean 404 handling via `notFound()`.
+- **States & Performance**:
+  - `not-found.tsx`: Clean 404 state with "Return to shop" action.
+  - `loading.tsx`: Zero-layout-shift skeleton for gallery and info column.
+
