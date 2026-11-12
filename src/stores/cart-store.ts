@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { PRODUCTS } from "@/lib/constants";
+import { useProductsStore } from "@/stores/products-store";
 
 export type CartItem = {
   productId: string;
@@ -63,7 +63,8 @@ export const useCartStore = create<CartState>()(
         const addQty = item.quantity && item.quantity > 0 ? item.quantity : 1;
 
         // Check catalog for latest price & variant image
-        const product = PRODUCTS.find((p) => p.id === item.productId);
+        const { products, ready } = useProductsStore.getState();
+        const product = ready ? products.find((p) => p.id === item.productId) : undefined;
         const resolvedPrice = product
           ? product.salePrice ?? product.price
           : item.price;
@@ -95,7 +96,7 @@ export const useCartStore = create<CartState>()(
                     ...i,
                     quantity: Math.min(
                       i.quantity + addQty,
-                      product?.stockCount || 10
+                      product?.stockCount ?? 10
                     ),
                     price: resolvedPrice,
                     image: resolvedImage,
@@ -112,7 +113,7 @@ export const useCartStore = create<CartState>()(
                 image: resolvedImage,
                 variantImage: resolvedImage,
                 variantLabel: item.variantLabel || item.color,
-                quantity: Math.min(addQty, product?.stockCount || 10),
+                quantity: Math.min(addQty, product?.stockCount ?? 10),
               },
             ];
           }
@@ -177,8 +178,8 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
-        const product = PRODUCTS.find((p) => p.id === productId);
-        const maxStock = product?.stockCount || 10;
+        const product = useProductsStore.getState().products.find((p) => p.id === productId);
+        const maxStock = product?.stockCount ?? 10;
         const cappedQty = Math.min(quantity, maxStock);
 
         set((state) => {
@@ -206,10 +207,11 @@ export const useCartStore = create<CartState>()(
           .reduce((sum, i) => sum + i.price * i.quantity, 0),
 
       syncWithCatalog: () => {
+        if (!useProductsStore.getState().ready) return;
         set((state) => {
           let hasChanges = false;
           const nextItems = state.items.map((item) => {
-            const product = PRODUCTS.find((p) => p.id === item.productId);
+            const product = useProductsStore.getState().products.find((p) => p.id === item.productId);
 
             // Check if product is removed or out of stock
             if (!product || !product.inStock || (product.stockCount !== undefined && product.stockCount <= 0)) {
@@ -224,8 +226,7 @@ export const useCartStore = create<CartState>()(
             const colorVariant = product.colors?.find(
               (c) => c.name === item.color || c.name === item.variantLabel
             );
-            const resolvedImage =
-              colorVariant?.image || item.variantImage || product.images[0];
+            const resolvedImage = colorVariant?.image || product.images[0] || item.variantImage || item.image;
 
             if (priceChanged || item.unavailable || item.variantImage !== resolvedImage) {
               hasChanges = true;
@@ -234,7 +235,7 @@ export const useCartStore = create<CartState>()(
             return {
               ...item,
               price: currentPrice,
-              priceUpdated: priceChanged,
+              priceUpdated: priceChanged || item.priceUpdated,
               unavailable: false,
               variantImage: resolvedImage,
               image: resolvedImage || item.image,
@@ -249,12 +250,13 @@ export const useCartStore = create<CartState>()(
     {
       name: "moments-cart",
       version: 2,
-      migrate: (persistedState: any, version: number) => {
-        if (!persistedState || !persistedState.items) return persistedState;
+      migrate: (stored, version) => {
+        const persistedState = stored as Pick<CartState, "items"> | undefined;
+        if (!persistedState || !Array.isArray(persistedState.items)) return persistedState;
         if (version < 2) {
           // Upgrade old items to ensure variantImage and variantLabel exist
-          const upgradedItems = persistedState.items.map((item: any) => {
-            const product = PRODUCTS.find((p) => p.id === item.productId);
+          const upgradedItems = persistedState.items.map((item) => {
+            const product = useProductsStore.getState().products.find((p) => p.id === item.productId);
             const colorVariant = product?.colors?.find(
               (c) => c.name === item.color
             );

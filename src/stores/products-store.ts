@@ -1,43 +1,32 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { PRODUCTS, type Product } from "@/lib/constants";
+import { CATEGORIES, PRODUCTS, type Category, type Product } from "@/lib/constants";
+import { POLICIES, type DeliveryTown } from "@/config/policies";
 
 interface ProductsState {
   products: Product[];
-  addProduct: (product: Product) => void;
-  updateProduct: (id: string, product: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
-  resetToDefaults: () => void;
+  categories: Category[];
+  towns: DeliveryTown[];
+  ready: boolean;
 }
 
-export const useProductsStore = create<ProductsState>()(
-  persist(
-    (set) => ({
-      products: PRODUCTS,
+export const useProductsStore = create<ProductsState>(() => ({
+  products: PRODUCTS,
+  categories: CATEGORIES,
+  towns: POLICIES.delivery.towns,
+  ready: false,
+}));
 
-      addProduct: (newProduct) =>
-        set((state) => ({
-          products: [newProduct, ...state.products],
-        })),
+let pending: Promise<void> | undefined;
 
-      updateProduct: (id, updatedFields) =>
-        set((state) => ({
-          products: state.products.map((p) =>
-            p.id === id ? { ...p, ...updatedFields } : p
-          ),
-        })),
-
-      deleteProduct: (id) =>
-        set((state) => ({
-          products: state.products.filter((p) => p.id !== id),
-        })),
-
-      resetToDefaults: () => set({ products: PRODUCTS }),
-    }),
-    {
-      name: "moments-products-cms",
-    }
-  )
-);
+export function refreshCatalog() {
+  pending ??= fetch("/api/catalog", { cache: "no-store" })
+    .then(async (response) => {
+      if (!response.ok) throw new Error("Could not load the catalog.");
+      const { categories, products, towns } = await response.json();
+      useProductsStore.setState({ categories, products, towns, ready: true });
+    })
+    .finally(() => { pending = undefined; });
+  return pending;
+}

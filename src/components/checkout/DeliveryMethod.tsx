@@ -6,6 +6,7 @@ import { STORE_HOURS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 export interface DeliveryMethodProps {
+  towns: DeliveryTown[];
   method: "pickup" | "courier";
   onChangeMethod: (method: "pickup" | "courier") => void;
   town: string;
@@ -21,6 +22,7 @@ export interface DeliveryMethodProps {
 }
 
 export function DeliveryMethod({
+  towns,
   method,
   onChangeMethod,
   town,
@@ -34,7 +36,8 @@ export function DeliveryMethod({
   errors,
   onBlur,
 }: DeliveryMethodProps) {
-  const towns = POLICIES.delivery.towns;
+  const minimumFee = Math.min(...towns.map(({ fee }) => fee));
+  const maximumFee = Math.max(...towns.map(({ fee }) => fee));
   const currentTownObj = towns.find((t) => t.name === town);
   const courierFee = currentTownObj ? currentTownObj.fee : 500;
 
@@ -104,7 +107,7 @@ export function DeliveryMethod({
                   ? courierFee === 0
                     ? "Free"
                     : `KES ${courierFee.toLocaleString("en-KE")}`
-                  : "KES 300 to 500"}
+                  : `KES ${minimumFee}–${maximumFee}`}
               </span>
             </div>
             <p className="text-[#6B6B66] mt-0.5">
@@ -141,7 +144,7 @@ export function DeliveryMethod({
               <option value="">Select your town / region</option>
               {towns.map((t: DeliveryTown) => (
                 <option key={t.name} value={t.name}>
-                  {t.name} ({t.fee === 0 ? "Free CBD" : `KES ${t.fee}`})
+                  {t.name} ({t.fee === 0 ? "Free" : `KES ${t.fee}`})
                 </option>
               ))}
             </select>

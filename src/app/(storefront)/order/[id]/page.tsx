@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -7,20 +8,15 @@ import { Price } from "@/components/ui/Price";
 import { getOrderByIdServer } from "@/lib/server-orders";
 import { STORE_INFO } from "@/lib/constants";
 import { generateWhatsAppLink } from "@/lib/utils";
-import { POLICIES } from "@/config/policies";
 import { cleanBrandName } from "@/lib/whatsapp";
 import type { Metadata } from "next";
 
 export const instant = false;
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  const { id } = await params;
+export function generateMetadata(): Metadata {
   return {
-    title: `Order #${id} Received | Moments Nairobi`,
+    title: "Order details | Moments Nairobi",
+    robots: { index: false, follow: false },
     description: "Thank you for your order with Moments Nairobi.",
   };
 }
@@ -31,45 +27,10 @@ export default async function OrderConfirmationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  await connection();
   const order = getOrderByIdServer(id);
 
-  if (!order) {
-    // If order was created in demo or not found in memory, show fallback confirmation
-    return (
-      <div className="bg-[#F6F4F0] min-h-[60vh] py-16">
-        <Container className="max-w-xl mx-auto text-center space-y-4">
-          <h1 className="text-2xl font-heading font-medium text-[#111111]">
-            Order received
-          </h1>
-          <p className="text-xs text-[#6B6B66]">
-            Order reference: <strong className="text-[#111111]">#{id}</strong>
-          </p>
-          <p className="text-xs text-[#6B6B66] leading-relaxed">
-            Your order has been recorded. Our team at Twilight Suites will confirm details and prepare your package.
-          </p>
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a
-              href={generateWhatsAppLink(
-                STORE_INFO.whatsappPhone,
-                `Hi Moments Nairobi, I would like to check on my order #${id}`
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto h-[48px] px-6 rounded-[2px] border border-[#1FA855] text-[#1FA855] text-xs font-medium flex items-center justify-center hover:bg-[#1FA855]/5 transition-colors"
-            >
-              Chat on WhatsApp about this order
-            </a>
-            <Link
-              href="/shop"
-              className="text-xs text-[#6B6B66] hover:text-[#111111] transition-colors underline underline-offset-4"
-            >
-              Continue shopping
-            </Link>
-          </div>
-        </Container>
-      </div>
-    );
-  }
+  if (!order) notFound();
 
   // Payment status display
   let paymentStatusText = "Awaiting payment";
@@ -91,7 +52,7 @@ export default async function OrderConfirmationPage({
           {/* Header */}
           <div className="text-center space-y-2 pb-6 border-b border-[#E4E0D8]">
             <h1 className="text-2xl sm:text-3xl font-heading font-medium text-[#111111]">
-              Order received
+              Order {order.status === "Pending" ? "received" : order.status.toLowerCase()}
             </h1>
             <p className="text-xs text-[#6B6B66]">
               Order reference:{" "}
@@ -106,7 +67,11 @@ export default async function OrderConfirmationPage({
             <h2 className="text-xs font-medium text-[#111111] uppercase tracking-wider">
               Next steps
             </h2>
-            {order.deliveryMethod === "pickup" ? (
+            {order.status === "Cancelled" ? (
+              <p className="text-xs text-[#6B6B66]">This order has been cancelled.</p>
+            ) : order.status === "Delivered" ? (
+              <p className="text-xs text-[#6B6B66]">This order is complete.</p>
+            ) : order.deliveryMethod === "pickup" ? (
               <ul className="text-xs text-[#6B6B66] space-y-1 list-disc list-inside">
                 <li>Ready in about 1 hour during store hours.</li>
                 <li>Collect at Twilight Suites, 4th Floor, Shop F4-08, Tom Mboya Street.</li>
@@ -156,6 +121,7 @@ export default async function OrderConfirmationPage({
                     <div className="relative w-12 aspect-[4/5] bg-[#EDEAE4] rounded-[2px] overflow-hidden shrink-0 border border-[#E4E0D8]">
                       <Image
                         src={item.image}
+                        unoptimized={(item.image).startsWith("https://")}
                         alt={cleanBrandName(item.name)}
                         fill
                         className="object-cover"

@@ -4,17 +4,16 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/stores/cart-store";
-import { useOrdersStore } from "@/stores/orders-store";
+import { refreshCatalog, useProductsStore } from "@/stores/products-store";
 import { Container } from "@/components/ui/Container";
 import { Price } from "@/components/ui/Price";
 import { DeliveryMethod } from "@/components/checkout/DeliveryMethod";
 import { PaymentMethod } from "@/components/checkout/PaymentMethod";
-import { POLICIES } from "@/config/policies";
 import { cleanBrandName } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Loader2 } from "lucide-react";
 
-export function normalizeKenyanPhone(phone: string): string | null {
+function normalizeKenyanPhone(phone: string): string | null {
   const cleaned = phone.replace(/[\s\-()]/g, "");
   if (/^(\+254|254)[17]\d{8}$/.test(cleaned)) {
     return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
@@ -33,13 +32,11 @@ export default function CheckoutPage() {
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
 
   const { items, totalPrice, clearCart, syncWithCatalog } = useCartStore();
-  const addOrder = useOrdersStore((s) => s.addOrder);
+  const towns = useProductsStore((s) => s.towns);
+  const catalogReady = useProductsStore((s) => s.ready);
 
-  // Idempotency key per session attempt
-  const idempotencyKeyRef = useRef<string>("");
-  useEffect(() => {
-    idempotencyKeyRef.current = `idem_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-  }, []);
+  const submitting = useRef(false);
+  const attempt = useRef<{ key: string; payload: string; expectedTotal: number } | undefined>(undefined);
 
   // Form state
   const [name, setName] = useState("");
@@ -112,78 +109,36 @@ export default function CheckoutPage() {
   }, [deliveryMethod]);
 
   // Delivery fee calculation
-  const selectedTownObj = POLICIES.delivery.towns.find((t) => t.name === town);
+  const selectedTownObj = towns.find((t) => t.name === town);
   const deliveryFee = deliveryMethod === "pickup" ? 0 : selectedTownObj ? selectedTownObj.fee : 500;
   const subtotal = totalPrice();
   const total = subtotal + deliveryFee;
   const hasUnavailable = items.some((i) => i.unavailable);
 
-  // Field validation
-  const validateField = (field: string): boolean => {
-    const newErrors = { ...errors };
+  function fieldError(field: string) {
+    if (field === "name" && !name.trim()) return "Full name is required";
+    if (field === "phone" && !normalizeKenyanPhone(phone)) return "Enter a valid Kenyan phone number";
+    if (field === "town" && deliveryMethod === "courier" && !selectedTownObj) return "Please select a town or region";
+    if (field === "address" && deliveryMethod === "courier" && !address.trim()) return "Delivery address is required";
+    return "";
+  }
 
-    if (field === "name") {
-      if (!name.trim()) {
-        newErrors.name = "Full name is required";
-      } else {
-        delete newErrors.name;
-      }
-    }
-
-    if (field === "phone") {
-      if (!phone.trim()) {
-        newErrors.phone = "Phone number is required";
-      } else if (!normalizeKenyanPhone(phone)) {
-        newErrors.phone = "Enter a valid Kenyan number (e.g. 0712 345 678 or +254...)";
-      } else {
-        delete newErrors.phone;
-      }
-    }
-
-    if (field === "town" && deliveryMethod === "courier") {
-      if (!town) {
-        newErrors.town = "Please select a town or region";
-      } else {
-        delete newErrors.town;
-      }
-    }
-
-    if (field === "address" && deliveryMethod === "courier") {
-      if (!address.trim()) {
-        newErrors.address = "Delivery address is required";
-      } else {
-        delete newErrors.address;
-      }
-    }
-
-    setErrors(newErrors);
-    return !newErrors[field];
-  };
-
-  const handleBlur = (field: string) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-    validateField(field);
-  };
+  function handleBlur(field: string) {
+    const message = fieldError(field);
+    setTouched((previous) => ({ ...previous, [field]: true }));
+    setErrors((previous) => ({ ...previous, [field]: message }));
+  }
 
   // Submit order
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current || !catalogReady) return;
     setServerError(null);
-
-    // Validate all
-    const isNameValid = validateField("name");
-    const isPhoneValid = validateField("phone");
-    const isTownValid = deliveryMethod === "pickup" || validateField("town");
-    const isAddressValid = deliveryMethod === "pickup" || validateField("address");
-
-    if (!isNameValid || !isPhoneValid || !isTownValid || !isAddressValid) {
-      return;
-    }
-
-    if (hasUnavailable) {
-      setServerError("Please return to cart and remove unavailable items before placing order.");
-      return;
-    }
+    const fields = ["name", "phone", "town", "address"];
+    const nextErrors = Object.fromEntries(fields.map((field) => [field, fieldError(field)]));
+    setErrors(nextErrors);
+    setTouched(Object.fromEntries(fields.map((field) => [field, true])));
+    if (Object.values(nextErrors).some(Boolean)) return;
 
     if (items.length === 0) {
       setServerError("Your cart is empty.");
@@ -191,71 +146,75 @@ export default function CheckoutPage() {
     }
 
     const normalizedPhone = normalizeKenyanPhone(phone)!;
+    submitting.current = true;
     setIsSubmitting(true);
 
     try {
+      const order = {
+        customerName: name,
+        customerPhone: normalizedPhone,
+        customerEmail: email || undefined,
+        deliveryMethod,
+        deliveryTown: deliveryMethod === "courier" ? town : undefined,
+        deliveryAddress: deliveryMethod === "courier" ? address : undefined,
+        deliveryLandmark: landmark || undefined,
+        notes: notes || undefined,
+        paymentMethod,
+        items: items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          color: i.color,
+          size: i.size,
+          variantId: i.variantId,
+          variantLabel: i.variantLabel,
+        })),
+      };
+      const payload = JSON.stringify(order);
+      if (!attempt.current) {
+        try {
+          attempt.current = JSON.parse(sessionStorage.getItem("moments_checkout_attempt") ?? "null") ?? undefined;
+        } catch {
+          // Checkout still works when session storage is unavailable.
+        }
+      }
+      if (attempt.current?.payload !== payload || typeof attempt.current.key !== "string") {
+        if (hasUnavailable) throw new Error("Remove unavailable items before placing an order.");
+        const bytes = crypto.getRandomValues(new Uint8Array(16));
+        attempt.current = {
+          payload,
+          expectedTotal: total,
+          key: Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(""),
+        };
+        try {
+          sessionStorage.setItem("moments_checkout_attempt", JSON.stringify(attempt.current));
+        } catch {
+          // The in-memory key still protects retries on this page.
+        }
+      }
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idempotencyKey: idempotencyKeyRef.current,
-          customerName: name,
-          customerPhone: normalizedPhone,
-          customerEmail: email || undefined,
-          deliveryMethod,
-          deliveryTown: deliveryMethod === "courier" ? town : undefined,
-          deliveryAddress: deliveryMethod === "courier" ? address : undefined,
-          deliveryLandmark: landmark || undefined,
-          notes: notes || undefined,
-          paymentMethod,
-          items: items.map((i) => ({
-            productId: i.productId,
-            quantity: i.quantity,
-            color: i.color,
-            size: i.size,
-            variantId: i.variantId,
-            variantLabel: i.variantLabel,
-          })),
-        }),
+        body: JSON.stringify({ ...order, idempotencyKey: attempt.current.key, expectedTotal: attempt.current.expectedTotal }),
       });
 
+      if (response.status >= 400 && response.status < 500) {
+        attempt.current = undefined;
+        try {
+          sessionStorage.removeItem("moments_checkout_attempt");
+        } catch {
+          // Checkout can continue without session storage.
+        }
+      }
       const data = await response.json();
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Failed to create order");
       }
 
-      // Also mirror into client CMS store for admin sync
-      addOrder({
-        customerName: name,
-        customerPhone: normalizedPhone,
-        customerEmail: email || undefined,
-        deliveryMethod,
-        deliveryZone: deliveryMethod === "pickup" ? "CBD Pickup" : town,
-        deliveryAddress: deliveryMethod === "pickup" ? POLICIES.pickup.address : address,
-        notes: notes || undefined,
-        items: items.map((i) => ({
-          productId: i.productId,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-          color: i.color,
-          size: i.size,
-          image: i.variantImage || i.image,
-          variantId: i.variantId,
-          variantLabel: i.variantLabel,
-          variantImage: i.variantImage,
-        })),
-        subtotal: data.order.subtotal,
-        deliveryFee: data.order.deliveryFee,
-        total: data.order.total,
-        paymentMethod,
-        paymentStatus: data.order.paymentStatus || "pending",
-      });
-
       // Clear form in sessionStorage
       try {
         sessionStorage.removeItem("moments_checkout_form");
+        sessionStorage.removeItem("moments_checkout_attempt");
       } catch {
         // ignore
       }
@@ -267,10 +226,12 @@ export default function CheckoutPage() {
       if (data.redirectUrl) {
         window.location.href = data.redirectUrl;
       } else {
-        router.push(`/order/${data.order.orderNumber}`);
+        router.push(`/order/${data.order.id}`);
       }
-    } catch (err: any) {
-      setServerError(err.message || "An unexpected error occurred. Please try again.");
+    } catch (err) {
+      void refreshCatalog().then(syncWithCatalog).catch(console.error);
+      setServerError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
+      submitting.current = false;
       setIsSubmitting(false);
     }
   };
@@ -462,6 +423,7 @@ export default function CheckoutPage() {
               {/* SECTION 2: DELIVERY METHOD */}
               <section className="pt-6 border-t border-[#E4E0D8]">
                 <DeliveryMethod
+                  towns={towns}
                   method={deliveryMethod}
                   onChangeMethod={setDeliveryMethod}
                   town={town}
@@ -540,10 +502,10 @@ export default function CheckoutPage() {
                 {/* Place Order CTA Button */}
                 <button
                   type="submit"
-                  disabled={isSubmitting || hasUnavailable}
+                  disabled={!catalogReady || isSubmitting}
                   className={cn(
                     "w-full h-[52px] rounded-[2px] text-white text-sm font-medium flex items-center justify-center gap-2 transition-colors select-none cursor-pointer",
-                    isSubmitting || hasUnavailable
+                    !catalogReady || isSubmitting
                       ? "bg-[#E4E0D8] text-[#6B6B66] cursor-not-allowed pointer-events-none"
                       : "bg-[#BB4C6C] hover:bg-[#9A3E58] active:translate-y-[1px]"
                   )}
