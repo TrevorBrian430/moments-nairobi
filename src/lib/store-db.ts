@@ -40,6 +40,12 @@ function getPool() {
 async function initializePostgres(pool: Pool) {
   if (!initialization) {
     initialization = (async () => {
+      const { rows } = await pool.query<{ ready: boolean }>(`
+        SELECT to_regclass('moments_store') IS NOT NULL
+          AND to_regclass('moments_admin_login') IS NOT NULL AS ready
+      `);
+      if (rows[0].ready) return;
+
       const client = await pool.connect();
       try {
         await client.query("BEGIN");

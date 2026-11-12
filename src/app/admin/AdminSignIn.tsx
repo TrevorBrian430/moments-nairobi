@@ -1,23 +1,27 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, useTransition, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 export default function AdminSignIn({ configured }: { configured: boolean }) {
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [refreshing, startTransition] = useTransition();
+  const router = useRouter();
+  const busy = submitting || refreshing;
   const [visible, setVisible] = useState(false);
   const pending = useRef(false);
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pending.current) return;
+    if (pending.current || refreshing) return;
 
     const password = new FormData(event.currentTarget).get("password");
     pending.current = true;
-    setBusy(true);
+    setSubmitting(true);
     setError("");
     try {
       const response = await fetch("/api/admin/session", {
@@ -29,14 +33,14 @@ export default function AdminSignIn({ configured }: { configured: boolean }) {
         const body = await response.json().catch(() => null);
         setError(typeof body?.error === "string" ? body.error : "Could not sign in. Try again.");
       } else {
-        window.location.reload();
-        return;
+        startTransition(() => router.refresh());
       }
     } catch {
       setError("Could not reach the store. Check your connection and try again.");
+    } finally {
+      pending.current = false;
+      setSubmitting(false);
     }
-    pending.current = false;
-    setBusy(false);
   }
 
   return (
@@ -72,7 +76,7 @@ export default function AdminSignIn({ configured }: { configured: boolean }) {
               )}
               <button type="submit" disabled={busy}
                 className="min-h-12 w-full rounded-[9px] bg-[#733d29] px-4 py-3 text-sm font-semibold text-white hover:bg-[#582c1c] focus-visible:outline-[#733d29] disabled:cursor-wait disabled:opacity-70">
-                {busy ? "Signing in…" : "Sign in"}
+                {refreshing ? "Opening dashboard…" : submitting ? "Signing in…" : "Sign in"}
               </button>
             </form>
           ) : (
