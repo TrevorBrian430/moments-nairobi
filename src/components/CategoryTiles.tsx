@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -5,21 +7,27 @@ import { ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CATEGORIES_CONFIG, type CategoryConfig } from "@/config/categories";
-import { PRODUCTS } from "@/lib/constants";
+import { useProductsStore } from "@/stores/products-store";
 import { cn } from "@/lib/utils";
 
 export default function CategoryTiles() {
-  // Pre-calculate real product counts per category
+  const categories = useProductsStore((s) => s.categories);
+  const products = useProductsStore((s) => s.products);
   const getProductCount = (slug: string) => {
-    const count = PRODUCTS.filter((p) => p.category === slug).length;
+    const count = products.filter((p) => p.category === slug).length;
     return count > 0 ? `${count} ${count === 1 ? "item" : "items"}` : null;
   };
 
-  const backpacks = CATEGORIES_CONFIG.find((c) => c.slug === "backpacks")!;
-  const crossbody = CATEGORIES_CONFIG.find((c) => c.slug === "crossbody-bags")!;
-  const designer = CATEGORIES_CONFIG.find((c) => c.slug === "designer-bags")!;
-  const clothing = CATEGORIES_CONFIG.find((c) => c.slug === "clothing")!;
-  const accessories = CATEGORIES_CONFIG.find((c) => c.slug === "accessories")!;
+  const tiles = categories.map((category) => {
+    const editorial = CATEGORIES_CONFIG.find(({ slug }) => slug === category.slug);
+    return {
+      slug: category.slug,
+      label: category.name,
+      src: category.image,
+      alt: category.name,
+      objectPosition: editorial?.objectPosition ?? "center",
+    };
+  });
 
   const renderTile = (cat: CategoryConfig, aspectClass: string) => {
     const itemCount = getProductCount(cat.slug);
@@ -39,6 +47,7 @@ export default function CategoryTiles() {
         >
           <Image
             src={cat.src}
+            unoptimized={cat.src.startsWith("https://")}
             alt={cat.alt}
             fill
             sizes="(min-width: 1024px) 50vw, 100vw"
@@ -69,6 +78,15 @@ export default function CategoryTiles() {
     );
   };
 
+  const [backpacks, crossbody, designer, clothing, accessories] = CATEGORIES_CONFIG.map(({ slug }) =>
+    tiles.find((tile) => tile.slug === slug),
+  );
+  const hasEditorialLayout = backpacks && crossbody && designer && clothing && accessories;
+  const extraTiles = hasEditorialLayout
+    ? tiles.filter((tile) => !CATEGORIES_CONFIG.some(({ slug }) => slug === tile.slug))
+    : tiles;
+  if (!tiles.length) return null;
+
   return (
     <section className="py-14 lg:py-24 bg-[var(--color-background)]">
       <Container>
@@ -77,27 +95,22 @@ export default function CategoryTiles() {
           link={{ href: "/shop", label: "View all collections" }}
         />
 
-        {/* Asymmetric 12-column grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-          {/* Top Left: Tall Backpacks tile (5 cols, aspect 4:5) */}
-          <div className="lg:col-span-5 flex flex-col">
-            {renderTile(backpacks, "aspect-[4/5]")}
+        {hasEditorialLayout && (
+          <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-5">{renderTile(backpacks, "aspect-[4/5]")}</div>
+            <div className="flex flex-col justify-between gap-6 sm:gap-8 lg:col-span-7">
+              {renderTile(crossbody, "aspect-[16/9]")}
+              {renderTile(designer, "aspect-[16/9]")}
+            </div>
+            <div className="lg:col-span-6">{renderTile(clothing, "aspect-[3/2]")}</div>
+            <div className="lg:col-span-6">{renderTile(accessories, "aspect-[3/2]")}</div>
           </div>
-
-          {/* Top Right: Two stacked tiles (7 cols, each aspect 16:9) */}
-          <div className="lg:col-span-7 flex flex-col justify-between gap-6 sm:gap-8">
-            {renderTile(crossbody, "aspect-[16/9]")}
-            {renderTile(designer, "aspect-[16/9]")}
+        )}
+        {extraTiles.length > 0 && (
+          <div className={cn("grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3", hasEditorialLayout && "mt-6 sm:mt-8")}>
+            {extraTiles.map((category) => renderTile(category, "aspect-[4/3]"))}
           </div>
-
-          {/* Bottom Row: Clothing and Accessories (6 cols each, aspect 3:2) */}
-          <div className="lg:col-span-6 flex flex-col">
-            {renderTile(clothing, "aspect-[3/2]")}
-          </div>
-          <div className="lg:col-span-6 flex flex-col">
-            {renderTile(accessories, "aspect-[3/2]")}
-          </div>
-        </div>
+        )}
       </Container>
     </section>
   );

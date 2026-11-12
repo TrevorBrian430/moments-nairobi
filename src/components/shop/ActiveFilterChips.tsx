@@ -1,6 +1,6 @@
+import { useProductsStore } from "@/stores/products-store";
 import React from "react";
 import { X } from "lucide-react";
-import { CATEGORIES } from "@/lib/constants";
 import { ShopFilterParams } from "@/lib/shop-params";
 
 export interface ActiveFilterChipsProps {
@@ -20,13 +20,12 @@ export function ActiveFilterChips({
   onRemoveSize,
   onClearAll,
 }: ActiveFilterChipsProps) {
+  const categories = useProductsStore((s) => s.categories);
   const categoryInfo = params.category
-    ? CATEGORIES.find((c) => c.slug === params.category)
+    ? categories.find((c) => c.slug === params.category)
     : null;
 
   const hasPrice = typeof params.min === "number" || typeof params.max === "number";
-  const hasColors = params.color && params.color.length > 0;
-  const hasSizes = params.size && params.size.length > 0;
   const hasCategory = Boolean(params.category && params.category !== "all");
 
   const totalActive =

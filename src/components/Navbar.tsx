@@ -5,22 +5,23 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Search, ShoppingBag, Menu, X, MapPin } from "lucide-react";
+import { useProductsStore } from "@/stores/products-store";
 import { useCartStore } from "@/stores/cart-store";
 import { STORE_HOURS } from "@/lib/constants";
 import AnnouncementBar from "./AnnouncementBar";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { cn } from "@/lib/utils";
 
-const NAV_LINKS = [
-  { label: "Shop All", href: "/shop" },
-  { label: "Backpacks", href: "/shop?category=backpacks" },
-  { label: "Crossbody Bags", href: "/shop?category=crossbody-bags" },
-  { label: "Designer Bags", href: "/shop?category=designer-bags" },
-  { label: "Clothing", href: "/shop?category=clothing" },
-  { label: "Accessories", href: "/shop?category=accessories" },
-] as const;
+function useShopLinks() {
+  const categories = useProductsStore((state) => state.categories);
+  return [
+    { label: "Shop All", href: "/shop" },
+    ...categories.map(({ name, slug }) => ({ label: name, href: `/shop?category=${slug}` })),
+  ];
+}
 
 function DesktopNavLinks() {
+  const shopLinks = useShopLinks();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -36,15 +37,15 @@ function DesktopNavLinks() {
   };
 
   return (
-    <nav className="hidden lg:flex items-center gap-8" aria-label="Main navigation">
-      {NAV_LINKS.map((link) => {
+    <nav className="hidden min-w-0 lg:flex items-center gap-5 overflow-x-auto" aria-label="Main navigation">
+      {shopLinks.map((link) => {
         const active = isLinkActive(link.href);
         return (
           <Link
             key={link.href}
             href={link.href}
             className={cn(
-              "relative text-[13px] uppercase tracking-[0.08em] font-medium py-1 transition-colors duration-200 select-none",
+              "relative shrink-0 text-[13px] uppercase tracking-[0.08em] font-medium py-1 transition-colors duration-200 select-none",
               active
                 ? "text-[#111111] font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1px] after:bg-[#BB4C6C]"
                 : "text-[#6B6B66] hover:text-[#111111]"
@@ -59,6 +60,7 @@ function DesktopNavLinks() {
 }
 
 function MobileNavLinks({ onNavigate }: { onNavigate: () => void }) {
+  const shopLinks = useShopLinks();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -75,7 +77,7 @@ function MobileNavLinks({ onNavigate }: { onNavigate: () => void }) {
 
   return (
     <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
-      {NAV_LINKS.map((link) => {
+      {shopLinks.map((link) => {
         const active = isLinkActive(link.href);
         return (
           <Link
@@ -108,6 +110,7 @@ function MobileNavLinks({ onNavigate }: { onNavigate: () => void }) {
 }
 
 export default function Navbar() {
+  const shopLinks = useShopLinks();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -182,8 +185,8 @@ export default function Navbar() {
           {/* Centered desktop nav */}
           <Suspense
             fallback={
-              <nav className="hidden lg:flex items-center gap-8">
-                {NAV_LINKS.map((link) => (
+              <nav className="hidden min-w-0 lg:flex items-center gap-5 overflow-x-auto">
+                {shopLinks.map((link) => (
                   <span
                     key={link.href}
                     className="text-[13px] uppercase tracking-[0.08em] font-medium text-[#6B6B66]"
@@ -275,7 +278,7 @@ export default function Navbar() {
         <Suspense
           fallback={
             <div className="p-4 space-y-2">
-              {NAV_LINKS.map((link) => (
+              {shopLinks.map((link) => (
                 <div key={link.href} className="py-2 text-xs text-[#6B6B66]">
                   {link.label}
                 </div>

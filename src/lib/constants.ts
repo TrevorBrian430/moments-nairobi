@@ -30,7 +30,15 @@ export const DELIVERY_ZONES = [
   { name: "Rest of Kenya", fee: 500, label: "KES 500" },
 ] as const;
 
-export const CATEGORIES = [
+export interface Category {
+  id: string;
+  slug: string;
+  name: string;
+  image: string;
+  description: string;
+}
+
+export const CATEGORIES: Category[] = [
   {
     id: "backpacks",
     name: "Backpacks",
@@ -66,7 +74,7 @@ export const CATEGORIES = [
     image: "/images/crossbody-bag 2.jpg",
     description: "Wallets, extras & everyday carry essentials",
   },
-] as const;
+];
 
 export type Product = {
   id: string;
@@ -75,6 +83,7 @@ export type Product = {
   category: string;
   price: number;
   salePrice?: number;
+  createdAt?: string;
   description: string;
   features: string[];
   images: string[];

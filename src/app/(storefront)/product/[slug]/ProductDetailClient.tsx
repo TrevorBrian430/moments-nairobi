@@ -18,11 +18,13 @@ import { StickyMobileBar } from "@/components/product/StickyMobileBar";
 export interface ProductDetailClientProps {
   product: Product;
   allProducts: Product[];
+  categoryName?: string;
 }
 
 export default function ProductDetailClient({
   product,
   allProducts,
+  categoryName,
 }: ProductDetailClientProps) {
   // Safe variant fallback
   const initialColor =
@@ -56,7 +58,7 @@ export default function ProductDetailClient({
 
   // Format category for breadcrumb and label
   const categorySlug = product.category;
-  const categoryLabel = categorySlug
+  const categoryLabel = categoryName ?? categorySlug
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");

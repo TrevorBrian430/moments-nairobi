@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useProductsStore } from "@/stores/products-store";
+import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { CATEGORIES, Product } from "@/lib/constants";
+import { type Product } from "@/lib/constants";
 import { ShopFilterParams } from "@/lib/shop-params";
 import { cn } from "@/lib/utils";
 
@@ -14,16 +15,6 @@ export interface FilterRailProps {
   className?: string;
 }
 
-const COLOR_OPTIONS: { name: string; hex: string }[] = [
-  { name: "Black", hex: "#1a1a1a" },
-  { name: "Brown", hex: "#4a3728" },
-  { name: "Maroon", hex: "#8b3a4a" },
-  { name: "Blue", hex: "#1e56a0" },
-  { name: "Green", hex: "#2d7d46" },
-  { name: "Grey", hex: "#808080" },
-  { name: "Khaki", hex: "#c4a882" },
-];
-
 export function FilterRail({
   params,
   allProducts,
@@ -32,36 +23,33 @@ export function FilterRail({
   className,
 }: FilterRailProps) {
   // Accordions open by default
+  const categories = useProductsStore((s) => s.categories);
   const [categoryOpen, setCategoryOpen] = useState(true);
   const [priceOpen, setPriceOpen] = useState(true);
   const [colorOpen, setColorOpen] = useState(true);
   const [sizeOpen, setSizeOpen] = useState(true);
 
-  // Local state for debounced/blur price inputs
-  const [localMin, setLocalMin] = useState<string>(
-    params.min ? String(params.min) : ""
-  );
-  const [localMax, setLocalMax] = useState<string>(
-    params.max ? String(params.max) : ""
-  );
-
-  useEffect(() => {
-    setLocalMin(params.min ? String(params.min) : "");
-  }, [params.min]);
-
-  useEffect(() => {
-    setLocalMax(params.max ? String(params.max) : "");
-  }, [params.max]);
+  const appliedMin = params.min?.toString() ?? "";
+  const appliedMax = params.max?.toString() ?? "";
+  const [draft, setDraft] = useState({ appliedMin, appliedMax, min: appliedMin, max: appliedMax });
+  if (draft.appliedMin !== appliedMin || draft.appliedMax !== appliedMax) {
+    setDraft({ appliedMin, appliedMax, min: appliedMin, max: appliedMax });
+  }
+  const localMin = draft.appliedMin === appliedMin ? draft.min : appliedMin;
+  const localMax = draft.appliedMax === appliedMax ? draft.max : appliedMax;
+  const colors = Array.from(new Map(allProducts.flatMap(({ colors }) =>
+    (colors ?? []).map((color) => [color.name.toLowerCase(), color] as const)
+  )).values());
 
   // Compute category counts
   const categoryCounts = React.useMemo(() => {
     const counts: Record<string, number> = {};
     counts["all"] = allProducts.length;
-    for (const cat of CATEGORIES) {
+    for (const cat of categories) {
       counts[cat.slug] = allProducts.filter((p) => p.category === cat.slug).length;
     }
     return counts;
-  }, [allProducts]);
+  }, [allProducts, categories]);
 
   // Extract available sizes from all products
   const availableSizes = React.useMemo(() => {
@@ -165,7 +153,7 @@ export function FilterRail({
                 </span>
               </button>
             </li>
-            {CATEGORIES.map((cat) => {
+            {categories.map((cat) => {
               const isSelected = params.category === cat.slug;
               return (
                 <li key={cat.slug}>
@@ -221,7 +209,7 @@ export function FilterRail({
                   aria-label="Minimum price in KES"
                   placeholder="Min"
                   value={localMin}
-                  onChange={(e) => setLocalMin(e.target.value)}
+                  onChange={(e) => setDraft({ ...draft, min: e.target.value })}
                   onBlur={applyPrices}
                   onKeyDown={(e) => e.key === "Enter" && applyPrices()}
                   className="w-full pl-9 pr-2 py-2 text-xs bg-[var(--color-surface)] border border-[var(--color-hairline)] rounded-[2px] min-h-[44px] text-[var(--color-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
@@ -237,7 +225,7 @@ export function FilterRail({
                   aria-label="Maximum price in KES"
                   placeholder="Max"
                   value={localMax}
-                  onChange={(e) => setLocalMax(e.target.value)}
+                  onChange={(e) => setDraft({ ...draft, max: e.target.value })}
                   onBlur={applyPrices}
                   onKeyDown={(e) => e.key === "Enter" && applyPrices()}
                   className="w-full pl-9 pr-2 py-2 text-xs bg-[var(--color-surface)] border border-[var(--color-hairline)] rounded-[2px] min-h-[44px] text-[var(--color-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
@@ -296,7 +284,7 @@ export function FilterRail({
 
         {colorOpen && (
           <div className="mt-3 flex flex-wrap gap-2.5 pt-1">
-            {COLOR_OPTIONS.map((c) => {
+            {colors.map((c) => {
               const isSelected = params.color?.includes(c.name.toLowerCase());
               return (
                 <button

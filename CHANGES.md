@@ -338,3 +338,11 @@ Generated clean, transparent-background SVG vectors directly from the original r
   - Method-specific 3-line next steps (pickup vs. courier), items overview, and prefilled WhatsApp support link.
 
 
+
+## Storefront follow-up
+
+- The homepage hero now uses the full image width below 1024px, with the full-width primary action above the centered text link. Desktop keeps the split grid and right-edge image bleed.
+- Product cards use the same effective price as checkout. Quick add carries the selected default variant, size and image. Product creation records a timestamp, and editing preserves it. The New label requires both the CMS flag and a real creation date less than 14 days old. Existing products without dates keep their catalog order and receive no invented date.
+- The shop reads the catalog on the server and uses category-specific metadata and canonical URLs. Unknown categories fall back to the full catalog.
+- Checkout validates all required fields together and retains the pending request key across reloads for the same order. A retry after an uncertain response reuses the original quoted total. Cart lines retain price-change feedback.
+- Verified review data, Instagram posts and a live online payment provider remain prerequisites for those features.

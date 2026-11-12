@@ -5,11 +5,9 @@ import { Container } from "@/components/ui/Container";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ProductCard } from "@/components/ProductCard";
 import { useProductsStore } from "@/stores/products-store";
-import { PRODUCTS } from "@/lib/constants";
 
 export default function NewArrivals() {
-  const storeProducts = useProductsStore((s) => s.products);
-  const products = storeProducts.length > 0 ? storeProducts : PRODUCTS;
+  const products = useProductsStore((s) => s.products);
 
   // Filter only products with an image and price
   const eligibleProducts = products.filter(
@@ -18,8 +16,8 @@ export default function NewArrivals() {
 
   // Sort by createdAt desc if present
   const sorted = [...eligibleProducts].sort((a, b) => {
-    const dateA = (a as { createdAt?: string }).createdAt;
-    const dateB = (b as { createdAt?: string }).createdAt;
+    const dateA = a.createdAt;
+    const dateB = b.createdAt;
     if (dateA && dateB) {
       return new Date(dateB).getTime() - new Date(dateA).getTime();
     }
@@ -30,8 +28,10 @@ export default function NewArrivals() {
 
   // Show 8 items max; trim to multiples of 4 so rows are complete on both 4-col desktop and 2-col mobile
   const rowCount = Math.floor(sorted.length / 4);
-  const countToShow = Math.min(8, Math.max(4, rowCount * 4));
+  const countToShow = Math.min(8, rowCount * 4);
   const displayedProducts = sorted.slice(0, countToShow);
+
+  if (!displayedProducts.length) return null;
 
   return (
     <section className="py-14 lg:py-24 bg-[var(--color-surface)]">

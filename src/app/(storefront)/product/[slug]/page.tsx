@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+import { readStore } from "@/lib/store-db";
 import { notFound } from "next/navigation";
 import { PRODUCTS, STORE_INFO } from "@/lib/constants";
 import ProductDetailClient from "./ProductDetailClient";
@@ -18,7 +20,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = PRODUCTS.find((p) => p.slug === slug);
+  await connection();
+  const { products } = readStore();
+  const product = products.find((p) => p.slug === slug);
 
   if (!product) {
     return {
@@ -59,7 +63,9 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = PRODUCTS.find((p) => p.slug === slug);
+  await connection();
+  const { categories, products } = readStore();
+  const product = products.find((p) => p.slug === slug);
 
   if (!product) {
     notFound();
@@ -70,7 +76,7 @@ export default async function ProductPage({
   return (
     <>
       <ProductJsonLd product={product} url={canonicalUrl} />
-      <ProductDetailClient product={product} allProducts={PRODUCTS} />
+      <ProductDetailClient categoryName={categories.find(({ slug }) => slug === product.category)?.name} product={product} allProducts={products} />
     </>
   );
 }

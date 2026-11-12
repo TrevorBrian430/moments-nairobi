@@ -7,7 +7,7 @@ import { type CartItem } from "@/stores/cart-store";
 import { Price } from "@/components/ui/Price";
 import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { cleanBrandName } from "@/lib/whatsapp";
-import { PRODUCTS } from "@/lib/constants";
+import { useProductsStore } from "@/stores/products-store";
 
 export interface CartLineProps {
   item: CartItem;
@@ -22,14 +22,14 @@ export function CartLine({
   onRemove,
   compact = false,
 }: CartLineProps) {
-  const product = PRODUCTS.find((p) => p.id === item.productId);
+  const product = useProductsStore((s) => s.products.find((p) => p.id === item.productId));
   const productSlug = product?.slug || item.productId;
   const cleanedName = cleanBrandName(item.name);
 
   const displayImage =
     item.variantImage || item.image || "/images/bagpack 1.jpg";
   const lineTotal = item.price * item.quantity;
-  const maxStock = product?.stockCount || 10;
+  const maxStock = product?.stockCount ?? 10;
 
   return (
     <div
@@ -40,12 +40,13 @@ export function CartLine({
       {/* 96px (compact: 72px) 4:5 thumbnail */}
       <Link
         href={`/product/${productSlug}`}
-        className={`relative shrink-0 rounded-[2px] bg-[#EDEAE4] overflow-hidden border border-[#E4E0D8] ${
+        className={`relative shrink-0 rounded-sm bg-surface-fallback overflow-hidden border border-hairline ${
           compact ? "w-[72px] aspect-[4/5]" : "w-[96px] aspect-[4/5]"
         }`}
       >
         <Image
           src={displayImage}
+          unoptimized={(displayImage).startsWith("https://")}
           alt={cleanedName}
           fill
           sizes={compact ? "72px" : "96px"}
@@ -59,7 +60,7 @@ export function CartLine({
           <div className="flex items-start justify-between gap-2">
             <Link
               href={`/product/${productSlug}`}
-              className="text-sm font-medium text-[#111111] hover:text-[#BB4C6C] transition-colors truncate"
+              className="text-sm font-medium text-ink hover:text-accent transition-colors truncate"
             >
               {cleanedName}
             </Link>
@@ -67,7 +68,7 @@ export function CartLine({
             <button
               type="button"
               onClick={onRemove}
-              className="text-xs text-[#6B6B66] hover:text-[#111111] transition-colors cursor-pointer select-none shrink-0"
+              className="text-xs text-muted hover:text-ink transition-colors cursor-pointer select-none shrink-0"
               aria-label={`Remove ${cleanedName} from cart`}
             >
               Remove
@@ -76,7 +77,7 @@ export function CartLine({
 
           {/* Variant Label */}
           {(item.variantLabel || item.color || item.size) && (
-            <p className="text-xs text-[#6B6B66] truncate">
+            <p className="text-xs text-muted truncate">
               {[item.variantLabel || item.color, item.size ? `Size ${item.size}` : null]
                 .filter(Boolean)
                 .join(" / ")}
@@ -85,7 +86,7 @@ export function CartLine({
 
           {/* Price status badges */}
           {item.priceUpdated && (
-            <p className="text-[11px] text-[#BB4C6C] font-medium">
+            <p className="text-[11px] text-accent font-medium">
               Price updated
             </p>
           )}
@@ -114,10 +115,10 @@ export function CartLine({
             <Price
               amount={lineTotal}
               size={compact ? "sm" : "md"}
-              className="font-medium text-[#111111]"
+              className="font-medium text-ink"
             />
             {!compact && item.quantity > 1 && (
-              <p className="text-[11px] text-[#6B6B66]">
+              <p className="text-[11px] text-muted">
                 KES {item.price.toLocaleString("en-KE")} each
               </p>
             )}

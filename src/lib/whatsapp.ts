@@ -37,12 +37,13 @@ export function buildWhatsAppOrderMessage(
   params.items.forEach((item) => {
     const cleaned = cleanBrandName(item.name);
     const options = [item.color, item.size ? `Size ${item.size}` : null]
-      .filter(Boolean)
+      .filter((option): option is string => Boolean(option))
+      .map(cleanBrandName)
       .join(", ");
 
     const formattedPrice = `KES ${(item.price * item.quantity).toLocaleString("en-KE")}`;
     lines.push(
-      `• ${item.quantity}x ${cleaned}${options ? `, ${options}` : ""}, ${formattedPrice}`
+      `${item.quantity} x ${cleaned}${options ? `, ${options}` : ""}, ${formattedPrice}`
     );
   });
 
@@ -55,7 +56,7 @@ export function buildWhatsAppOrderMessage(
   if (typeof params.deliveryFee === "number") {
     const feeText =
       params.deliveryFee === 0
-        ? "Free (Nairobi CBD)"
+        ? "Free"
         : `KES ${params.deliveryFee.toLocaleString("en-KE")}`;
     lines.push(`Delivery fee: ${feeText}`);
     const grandTotal = params.subtotal + params.deliveryFee;

@@ -100,7 +100,7 @@
 /* Hero animations: 400ms text fade up 12px, 500ms image fade in */
 @media (min-width: 1024px) {
   .hero-desktop-bleed {
-    margin-right: calc(50% - 50vw);
+    margin-right: calc((min(100vw, 1280px) - 100vw) / 2 - 2rem);
   }
 }
 

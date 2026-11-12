@@ -1,19 +1,18 @@
+"use client";
+
+import { useProductsStore } from "@/stores/products-store";
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { STORE_INFO, STORE_HOURS } from "@/lib/constants";
 import { POLICIES } from "@/config/policies";
 
-const SHOP_LINKS = [
-  { label: "Shop All", href: "/shop" },
-  { label: "Backpacks", href: "/shop?category=backpacks" },
-  { label: "Crossbody Bags", href: "/shop?category=crossbody-bags" },
-  { label: "Designer Bags", href: "/shop?category=designer-bags" },
-  { label: "Clothing", href: "/shop?category=clothing" },
-  { label: "Accessories", href: "/shop?category=accessories" },
-] as const;
-
 export default function Footer() {
+  const categories = useProductsStore((state) => state.categories);
+  const shopLinks = [
+    { label: "Shop All", href: "/shop" },
+    ...categories.map(({ name, slug }) => ({ label: name, href: `/shop?category=${slug}` })),
+  ];
   const currentYear = 2026;
 
   return (
@@ -58,7 +57,7 @@ export default function Footer() {
               Shop
             </h2>
             <ul className="space-y-2.5">
-              {SHOP_LINKS.map((link) => (
+              {shopLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

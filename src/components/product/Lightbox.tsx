@@ -111,6 +111,7 @@ export function Lightbox({
         >
           <Image
             src={currentImage}
+            unoptimized={(currentImage).startsWith("https://")}
             alt={`${productName} view ${currentIndex + 1}`}
             fill
             sizes="100vw"

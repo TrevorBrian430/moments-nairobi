@@ -98,6 +98,7 @@ export function Gallery({
                 >
                   <Image
                     src={img}
+                    unoptimized={(img).startsWith("https://")}
                     alt={`${productName} thumbnail ${idx + 1}`}
                     fill
                     sizes="64px"
@@ -116,6 +117,7 @@ export function Gallery({
         >
           <Image
             src={currentImage}
+            unoptimized={(currentImage).startsWith("https://")}
             alt={productName}
             fill
             priority
@@ -141,6 +143,7 @@ export function Gallery({
             >
               <Image
                 src={img}
+                unoptimized={(img).startsWith("https://")}
                 alt={`${productName} ${idx + 1}`}
                 fill
                 priority={idx === 0}
@@ -192,6 +195,7 @@ export function Gallery({
         <div className="hidden" aria-hidden="true">
           <Image
             src={nextImage}
+            unoptimized={(nextImage).startsWith("https://")}
             alt=""
             width={1}
             height={1}

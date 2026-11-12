@@ -1,10 +1,11 @@
 "use client";
 
+import { useProductsStore } from "@/stores/products-store";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CATEGORIES, type Product } from "@/lib/constants";
+import { type Product } from "@/lib/constants";
 import ProductCard from "@/components/ProductCard";
 
 type SortOption = "newest" | "price-asc" | "price-desc";
@@ -26,6 +27,7 @@ export default function ProductGrid({
   title,
   showFilters = false,
 }: ProductGridProps) {
+  const categories = useProductsStore((s) => s.categories);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
 
@@ -92,7 +94,7 @@ export default function ProductGrid({
             >
               All
             </button>
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.id}
                 type="button"

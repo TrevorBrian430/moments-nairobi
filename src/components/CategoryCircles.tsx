@@ -1,14 +1,15 @@
 "use client";
 
+import { useProductsStore } from "@/stores/products-store";
 import Image from "next/image";
 import Link from "next/link";
-import { CATEGORIES } from "@/lib/constants";
 
 export default function CategoryCircles() {
+  const categories = useProductsStore((s) => s.categories);
   return (
     <div className="w-full py-2">
       <div className="flex items-start gap-4 sm:gap-6 overflow-x-auto px-1 pb-3 scrollbar-hide sm:justify-center snap-x snap-mandatory">
-        {CATEGORIES.map((category) => (
+        {categories.map((category) => (
           <Link
             key={category.id}
             href={`/shop?category=${category.slug}`}
@@ -19,6 +20,7 @@ export default function CategoryCircles() {
               <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full bg-neutral-100">
                 <Image
                   src={category.image}
+                  unoptimized={category.image.startsWith("https://")}
                   alt={category.name}
                   fill
                   sizes="80px"

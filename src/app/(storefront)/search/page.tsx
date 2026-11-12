@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { PRODUCTS } from "@/lib/constants";
+import { useProductsStore } from "@/stores/products-store";
 import ProductCard from "@/components/ProductCard";
 import { Search as SearchIcon, X } from "lucide-react";
 import { Container } from "@/components/ui/Container";
@@ -12,11 +12,12 @@ function SearchContent() {
   const initialQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(initialQuery);
 
+  const products = useProductsStore((s) => s.products);
   const matchedProducts = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return PRODUCTS;
+    if (!q) return products;
 
-    return PRODUCTS.filter((p) => {
+    return products.filter((p) => {
       const matchName = p.name.toLowerCase().includes(q);
       const matchCat = p.category.toLowerCase().includes(q);
       const matchDesc = p.description.toLowerCase().includes(q);
@@ -24,7 +25,7 @@ function SearchContent() {
       const matchColors = p.colors?.some((c) => c.name.toLowerCase().includes(q));
       return matchName || matchCat || matchDesc || matchFeatures || matchColors;
     });
-  }, [query]);
+  }, [query, products]);
 
   return (
     <div className="w-full bg-[var(--color-background)] min-h-screen py-10 sm:py-16">

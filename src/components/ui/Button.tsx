@@ -17,11 +17,11 @@ export interface ButtonProps
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-[#BB4C6C] hover:bg-[#9A3E58] text-white border border-transparent shadow-none active:translate-y-[1px]",
+    "bg-accent hover:bg-accent-dark text-white border border-transparent shadow-none active:translate-y-[1px]",
   secondary:
-    "bg-white hover:bg-[#F6F4F0] text-[#111111] border border-[#E4E0D8] shadow-none active:translate-y-[1px]",
+    "bg-surface hover:bg-background text-ink border border-hairline shadow-none active:translate-y-[1px]",
   text:
-    "bg-transparent text-[#111111] hover:text-[#BB4C6C] border-none underline-offset-4 hover:underline shadow-none",
+    "bg-transparent text-ink hover:text-accent border-none underline-offset-4 hover:underline shadow-none",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -48,8 +48,8 @@ export const Button = React.forwardRef<
     ref
   ) => {
     const baseClasses = cn(
-      "inline-flex items-center justify-center font-medium rounded-[2px] transition-all duration-200 ease-out select-none cursor-pointer touch-manipulation",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BB4C6C] focus-visible:ring-offset-2",
+      "inline-flex items-center justify-center font-medium rounded-sm transition-all duration-200 ease-out select-none cursor-pointer touch-manipulation",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
       "disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed",
       variantStyles[variant],
       sizeStyles[size],

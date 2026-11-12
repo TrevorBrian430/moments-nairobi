@@ -9,10 +9,10 @@ export interface DeliveryTown {
 export const POLICIES = {
   delivery: {
     title: "Delivery",
-    summary: "Free in Nairobi CBD. Courier countrywide KES 300 to 500.",
-    cartSummary: "Free in Nairobi CBD. Courier countrywide KES 300 to 500.",
+    summary: "Store pickup is free. Courier fees vary by destination.",
+    cartSummary: "Store pickup is free. Courier fees vary by destination.",
     details:
-      "Orders within Nairobi CBD qualify for free same-day delivery. Countrywide courier dispatch across Kenya is KES 300 to 500, delivered within 24 hours via reliable parcel couriers.",
+      "Courier is available across Kenya. Choose your destination at checkout to see the delivery fee.",
     freeThreshold: null, // No misleading free countrywide threshold
     towns: [
       { name: "Nairobi - CBD", zone: "cbd", fee: 0 },
