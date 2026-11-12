@@ -4,7 +4,7 @@ import { deliveryTowns } from "@/lib/delivery-fees";
 
 export async function GET() {
   await connection();
-  const { categories, products, deliveryFees } = readStore();
+  const { categories, products, deliveryFees } = await readStore();
   return Response.json({ categories, products, towns: deliveryTowns(deliveryFees) }, {
     headers: { "Cache-Control": "no-store" },
   });

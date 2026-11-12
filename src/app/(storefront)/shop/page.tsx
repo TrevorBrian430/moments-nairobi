@@ -11,7 +11,7 @@ export async function generateMetadata({ searchParams }: {
   searchParams: Promise<{ category?: string | string[] }>;
 }): Promise<Metadata> {
   const { category: slug } = await searchParams;
-  const category = readStore().categories.find((entry) => entry.slug === slug);
+  const category = (await readStore()).categories.find((entry) => entry.slug === slug);
   return {
     title: category ? `${cleanBrandName(category.name)} | Moments Nairobi` : "Shop | Moments Nairobi",
     description: category?.description ? cleanBrandName(category.description) : "Browse the Moments Nairobi catalog.",
@@ -21,7 +21,7 @@ export async function generateMetadata({ searchParams }: {
 
 async function Catalog() {
   await connection();
-  const { categories, products } = readStore();
+  const { categories, products } = await readStore();
   return <ShopCatalog initialCategories={categories} initialProducts={products} />;
 }
 

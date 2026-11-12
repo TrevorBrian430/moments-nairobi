@@ -46,3 +46,12 @@ The database starts with the repository catalog and an empty order history. Cata
 Checkout reserves inventory and records pay-on-pickup or pay-on-delivery orders. Staff update fulfilment and record payments from the Orders tab. Cancelling an unpaid order returns its units to inventory. Staff contact customers using the WhatsApp link in each order.
 
 Use Categories to add, rename, or delete empty collections. A category URL stays the same after renaming. Assign products to collections from Product CMS. To record a WhatsApp or in-store sale, use Orders → New order. Manual orders use the same pricing and stock checks as website checkout.
+
+### Vercel database setup
+
+Set both variables for the Vercel environment being deployed, including Production for the live site.
+
+- `ADMIN_PASSWORD` is the password used on `/admin`.
+- `MOMENTS_NAIROBI_DATABASE_URL_POOLED` is the pooled PostgreSQL URL from Prisma Postgres. Paste the URL itself with no surrounding quotes or escape characters. The app also accepts `MOMENTS_NAIROBI_POSTGRES_URL` or `MOMENTS_NAIROBI_PRISMA_DATABASE_URL` if the pooled variable is absent.
+
+Deploy a commit containing Postgres support from the branch configured as the Vercel Production Branch. The first database request creates the store tables and seeds the repository catalog if the database is empty. Existing local SQLite records are separate and require an explicit import if they should go live. Local development continues to use SQLite when no Postgres URL is set.

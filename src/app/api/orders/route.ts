@@ -5,7 +5,7 @@ import { getPaymentProvider } from "@/lib/payments";
 
 export async function POST(req: NextRequest) {
   try {
-    const order = createOrderServer(parseOrderInput(await req.json()));
+    const order = await createOrderServer(parseOrderInput(await req.json()));
 
     // Invoke payment provider seam
     const provider = getPaymentProvider();

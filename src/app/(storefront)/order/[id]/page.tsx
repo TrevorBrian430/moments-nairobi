@@ -28,7 +28,7 @@ export default async function OrderConfirmationPage({
 }) {
   const { id } = await params;
   await connection();
-  const order = getOrderByIdServer(id);
+  const order = await getOrderByIdServer(id);
 
   if (!order) notFound();
 

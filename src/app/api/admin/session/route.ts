@@ -8,7 +8,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Expected JSON." }, { status: 415 });
   }
   const body = await request.json().catch(() => null);
-  if (!allowLoginAttempt()) return NextResponse.json({ error: "Too many attempts. Try again in a minute." }, { status: 429 });
+  try {
+    if (!await allowLoginAttempt()) {
+      return NextResponse.json({ error: "Too many attempts. Try again in a minute." }, { status: 429 });
+    }
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException)?.code;
+    console.error("Admin sign-in database unavailable", code ?? "storage configuration or connection error");
+    return NextResponse.json({ error: "The store database is unavailable. Try again shortly." }, { status: 503 });
+  }
   if (typeof body?.password !== "string" || !passwordMatches(body.password)) {
     return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
   }

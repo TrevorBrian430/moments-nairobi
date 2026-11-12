@@ -46,8 +46,8 @@ export interface ServerOrder {
   createdAt: string;
 }
 
-export function getOrderByIdServer(id: string) {
-  return readStore().orders.find((order) => order.id === id);
+export async function getOrderByIdServer(id: string) {
+  return (await readStore()).orders.find((order) => order.id === id);
 }
 
 export interface CreateOrderParams {
@@ -72,7 +72,7 @@ export interface CreateOrderParams {
   }[];
 }
 
-export function createOrderServer(params: CreateOrderParams, source: NonNullable<ServerOrder["source"]> = "website"): ServerOrder {
+export async function createOrderServer(params: CreateOrderParams, source: NonNullable<ServerOrder["source"]> = "website"): Promise<ServerOrder> {
   return updateStore((data) => {
     const key = params.idempotencyKey && (source === "website" ? params.idempotencyKey : `${source}:${params.idempotencyKey}`);
     const keys = source === "website" ? data.idempotency : (data.manualIdempotency ??= {});

@@ -9,7 +9,7 @@ import AdminSignIn from "./AdminSignIn";
 async function AdminAccess() {
   await connection();
   if (await isAdmin()) {
-    const { categories, products, orders, deliveryFees } = readStore();
+    const { categories, products, orders, deliveryFees } = await readStore();
     return <AdminDashboard initialCategories={categories} initialProducts={products} initialOrders={orders} initialTowns={deliveryTowns(deliveryFees)} />;
   }
   return <AdminSignIn configured={adminConfigured()} />;

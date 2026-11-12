@@ -21,7 +21,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   await connection();
-  const { products } = readStore();
+  const { products } = await readStore();
   const product = products.find((p) => p.slug === slug);
 
   if (!product) {
@@ -64,7 +64,7 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
   await connection();
-  const { categories, products } = readStore();
+  const { categories, products } = await readStore();
   const product = products.find((p) => p.slug === slug);
 
   if (!product) {

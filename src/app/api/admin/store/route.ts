@@ -46,7 +46,7 @@ function validateProduct(product: Product, categories: Category[]) {
 
 export async function GET() {
   if (!await isAdmin()) return Response.json({ error: "Sign in to continue." }, { status: 401 });
-  const { categories, products, orders, deliveryFees } = readStore();
+  const { categories, products, orders, deliveryFees } = await readStore();
   return Response.json({ categories, products, orders, towns: deliveryTowns(deliveryFees) }, {
     headers: { "Cache-Control": "no-store" },
   });
@@ -60,11 +60,11 @@ export async function PATCH(request: Request) {
       if (body.source !== "whatsapp" && body.source !== "in-store") {
         throw new AdminInputError("Choose where the order was placed.");
       }
-      const order = createOrderServer(parseOrderInput(body.order), body.source);
-      const { orders, products } = readStore();
+      const order = await createOrderServer(parseOrderInput(body.order), body.source);
+      const { orders, products } = await readStore();
       return Response.json({ orders, products, orderId: order.id });
     }
-    const result = updateStore((data) => {
+    const result = await updateStore((data) => {
       switch (body?.action) {
         case "saveCategory": {
           const { id, name, description, image } = body.category ?? {};
